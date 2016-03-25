@@ -38,6 +38,11 @@ class VersionPayload(Payload):
     def setPayload(self, model):
         self.payload = {'meta':{'type':'version'}, 'content':{"id" :model.id, "name":model.name, "base_url":model.base_url}}
 
+class SwaggerPayload(Payload):
+    def setPayload(self, model):
+        self.payload = {'meta':{'type':'swagger'}, 'content':{"id" :model.id, "version_id":model.version_id,
+                                                              "api_id":model.api_id}}
+
 class SaasdocPayload(Payload):
     def setPayload(self, model):
         self.payload = {'meta':{'type':'saasdoc'}, 'content':{"id" :model.saasdoc_id, "name":model.name, "public":model.public,

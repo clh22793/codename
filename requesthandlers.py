@@ -1,5 +1,7 @@
 from flask import Flask, json, request, make_response
-import json,datetime,base64
+from werkzeug import secure_filename
+import json,datetime,base64,os
+
 
 # internal imports
 import customexception
@@ -165,23 +167,34 @@ class VersionHandler(BearerRequestHandler):
         return response
 
 class SwaggerHandler(BearerRequestHandler):
+    ALLOWED_EXTENSIONS = set(['json'])
+    UPLOAD_FOLDER = 'uploads'
+
+    def allowed_file(self, filename):
+        return '.' in filename and \
+            filename.rsplit('.', 1)[1] in SwaggerHandler.ALLOWED_EXTENSIONS
+
     def post(self, request, *argv):
-        api_id = argv[0]
+        version_id = argv[0]
 
-        data = json.loads(request.get_data())
-        name = data['name']
-        created = datetime.datetime.utcnow()
-        active = True
-        #id = Util.generate_id(name+self.oauth.user_id)
+        file = request.files['file']
+        if file and self.allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            content = file.read()
+            file.save(os.path.join(SwaggerHandler.UPLOAD_FOLDER, filename))
 
-        swagger = self.Swaggers.query(name=name, api_id=api_id, active=True).get()
-        if not swagger._id:
-            swagger = self.Versions(id=name, name=name, api_id=api_id, created=created, active=active, user_id=self.oauth.user_id)
+            id = Util.generate_id(self.oauth.user_id+filename)
+            created = datetime.datetime.utcnow()
+            active = True
+
+            version = self.Versions.query(id=version_id).get()
+
+            swagger = self.Swaggers(id=id, api_id=version.api_id, version_id=version.id, created=created, active=active, user_id=self.oauth.user_id, content=content)
             swagger.put()
 
             response = make_response(SwaggerPayload(swagger).getPayload(), 201)
 
         else:
-            raise customexception.ResourceException(customexception.swagger_already_exists)
+            response = make_response('ERROR: File not uploaded', 200)
 
         return response
