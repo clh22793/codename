@@ -110,7 +110,7 @@ class OauthHandler(BasicRequestHandler):
             active = True
             user_id = user.user_id
 
-            oauth = self.Oauths(access_token=access_token, refresh_token=refresh_token, created=created, active=active, user_id=user_id)
+            oauth = self.Oauths(access_token=access_token, refresh_token=refresh_token, created=created, active=active, user_id=user_id, client_id=self.client.id)
             oauth.put()
 
             response = make_response(OauthPayload(oauth).getPayload(), 201)
@@ -128,7 +128,7 @@ class ApiHandler(BearerRequestHandler):
 
         api = self.Apis.query(title=title, active=True).get()
         if not api._id:
-            api = self.Apis(id=Util.generate_id(title+self.oauth.user_id), title=title, created=created, active=active, user_id=self.oauth.user_id)
+            api = self.Apis(id=Util.generate_id(title+self.oauth.user_id), title=title, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
             api.put()
 
             response = make_response(ApiPayload(api).getPayload(), 201)
@@ -153,7 +153,7 @@ class VersionHandler(BearerRequestHandler):
 
         version = self.Versions.query(name=name, api_id=api_id, active=True).get()
         if not version._id:
-            version = self.Versions(id=name, name=name, api_id=api_id, created=created, active=active, user_id=self.oauth.user_id)
+            version = self.Versions(id=name, name=name, api_id=api_id, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
             version.put()
 
             response = make_response(VersionPayload(version).getPayload(), 201)
@@ -189,7 +189,7 @@ class SwaggerHandler(BearerRequestHandler):
 
             version = self.Versions.query(id=version_id).get()
 
-            swagger = self.Swaggers(id=id, api_id=version.api_id, version_id=version.id, created=created, active=active, user_id=self.oauth.user_id, content=content)
+            swagger = self.Swaggers(id=id, api_id=version.api_id, version_id=version.id, created=created, active=active, user_id=self.oauth.user_id, content=content, client_id=self.oauth.client_id)
             swagger.put()
 
             response = make_response(SwaggerPayload(swagger).getPayload(), 201)

@@ -68,6 +68,5 @@ def names():
     data = {"names": ["Chris", "Hank", "Harry", "joe"]}
     return jsonify(data)
 
-
 if __name__ == '__main__':
     app.run(debug=True)
