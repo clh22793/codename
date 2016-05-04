@@ -75,7 +75,7 @@ class ClientHandler(BasicRequestHandler):
         return response
 
 class UserHandler(BasicRequestHandler):
-    def post(self, request):
+    def post(self, request, resource_id=None):
         # get vars
         username = request.form['username']
         password = Util.generate_password(request.form['password'])
