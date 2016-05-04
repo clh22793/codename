@@ -2,7 +2,6 @@ from flask import Flask, json, request, make_response
 from werkzeug import secure_filename
 import json,datetime,base64,os
 
-
 # internal imports
 import customexception
 from util import Util
@@ -75,7 +74,7 @@ class ClientHandler(BasicRequestHandler):
 
         return response
 
-class UserHandler(BearerRequestHandler):
+class UserHandler(BasicRequestHandler):
     def post(self, request):
         # get vars
         username = request.form['username']
