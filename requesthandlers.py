@@ -95,7 +95,7 @@ class UserHandler(BasicRequestHandler):
             raise customexception.ResourceException(customexception.user_already_exists)
 
 class OauthHandler(BasicRequestHandler):
-    def post(self, request):
+    def post(self, request, resource_id=None):
         # check for user
         username = request.form['username']
         password = request.form['password']
