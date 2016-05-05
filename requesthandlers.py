@@ -201,7 +201,6 @@ class VersionHandler(BearerRequestHandler):
 
         return response
 
-
 class ResourceHandler(BearerRequestHandler):
     def post(self, request, *argv):
         version_id = argv[0]
@@ -229,6 +228,22 @@ class ResourceHandler(BearerRequestHandler):
         #response = make_response(VersionPayload(version).getPayload(), 201)
 
         return response
+
+    def get(self, request, *argv):
+        version_id = argv[0]
+
+        resources = self.Resources.query(user_id=self.oauth.user_id, version_id=version_id, active=True).fetch()
+
+        resources_payload = []
+
+        for resource in resources:
+            tmp = Map(resource)
+            resources_payload.append(ResourcePayload(tmp).getPayload(False))
+
+        response = make_response(json.dumps(resources_payload), 200)
+
+        return response
+
 
 class SwaggerHandler(BearerRequestHandler):
     ALLOWED_EXTENSIONS = set(['json'])

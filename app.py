@@ -63,7 +63,7 @@ def versions(api_id):
     versionhandler = requesthandlers.VersionHandler()
     return versionhandler.process(request, api_id)
 
-@app.route('/versions/<version_id>/resources', methods=['POST'])
+@app.route('/versions/<version_id>/resources', methods=['POST', 'GET'])
 def resources(version_id):
     resourcehandler = requesthandlers.ResourceHandler()
     return resourcehandler.process(request, version_id)
