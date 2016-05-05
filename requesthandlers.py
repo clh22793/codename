@@ -10,6 +10,7 @@ from payload import UsersPayload
 from payload import OauthPayload
 from payload import ApiPayload
 from payload import VersionPayload
+from payload import ResourcePayload
 from payload import SwaggerPayload
 
 from models import Map
@@ -20,6 +21,7 @@ from models import model_api
 from models import model_swagger
 from models import model_client
 from models import model_version
+from models import model_resource
 
 
 class RequestHandler():
@@ -33,6 +35,7 @@ class RequestHandler():
         self.Swaggers = model_swagger()
         self.Clients = model_client()
         self.Versions = model_version()
+        self.Resources = model_resource()
 
     def process(self, request, resource_id=None):
         self.authorize(request)
@@ -140,28 +143,21 @@ class ApiHandler(BearerRequestHandler):
 
         return response
 
-    def get(self, request, resource_id=None):
-        apis = self.Apis.query(user_id=self.oauth.user_id, active=True).fetch()
-
-        apis_payload = []
-
-        for api in apis:
-            tmp = Map(api)
-            apis_payload.append(ApiPayload(tmp).getPayload(False))
-
-        '''
-        if not apis:
-            api = self.Apis(id=Util.generate_id(title+self.oauth.user_id), title=title, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
-            api.put()
-
-            response = make_response(ApiPayload(api).getPayload(), 201)
+    def get(self, request, id=None):
+        if id:
+            api = self.Apis.query(user_id=self.oauth.user_id, id=id, active=True).get()
+            response = make_response(ApiPayload(api).getPayload(), 200)
         else:
-            raise customexception.ResourceException(customexception.api_already_exists)
+            apis = self.Apis.query(user_id=self.oauth.user_id, active=True).fetch()
 
-        return response
-        '''
+            apis_payload = []
 
-        response = make_response(json.dumps(apis_payload), 200)
+            for api in apis:
+                tmp = Map(api)
+                apis_payload.append(ApiPayload(tmp).getPayload(False))
+
+            response = make_response(json.dumps(apis_payload), 200)
+
         return response
 
 
@@ -185,6 +181,34 @@ class VersionHandler(BearerRequestHandler):
 
         else:
             raise customexception.ResourceException(customexception.version_already_exists)
+
+        #response = make_response(VersionPayload(version).getPayload(), 201)
+
+        return response
+
+class ResourceHandler(BearerRequestHandler):
+    def post(self, request, *argv):
+        version_id = argv[0]
+
+        data = json.loads(request.get_data())
+        name = data['name']
+        plurality = data['plurality']
+        parent = data['parent']
+        parameters = data['parameters']
+        created = datetime.datetime.utcnow()
+        active = True
+        #id = Util.generate_id(name+self.oauth.user_id)
+
+        resource = self.Resources.query(name=name, version_id=version_id, active=True).get()
+        if not resource._id:
+            resource = self.Resources(id=Util.generate_id(name), name=name, version_id=version_id, plurality=plurality, parent=parent, parameters=parameters, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
+            resource.put()
+
+            response = make_response(ResourcePayload(resource).getPayload(), 201)
+            #return response
+
+        else:
+            raise customexception.ResourceException(customexception.resource_already_exists)
 
         #response = make_response(VersionPayload(version).getPayload(), 201)
 

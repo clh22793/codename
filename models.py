@@ -126,3 +126,7 @@ class model_swagger(model_base):
 class model_version(model_base):
     def set_table(self):
         self.table = 'versions'
+
+class model_resource(model_base):
+    def set_table(self):
+        self.table = 'resources'

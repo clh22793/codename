@@ -53,10 +53,20 @@ def apis():
     apihandler = requesthandlers.ApiHandler()
     return apihandler.process(request)
 
+@app.route('/apis/<api_id>', methods=['GET'])
+def apis_by_id(api_id):
+    apihandler = requesthandlers.ApiHandler()
+    return apihandler.process(request, api_id)
+
 @app.route('/apis/<api_id>/versions', methods=['POST'])
 def versions(api_id):
     versionhandler = requesthandlers.VersionHandler()
     return versionhandler.process(request, api_id)
+
+@app.route('/versions/<version_id>/resources', methods=['POST'])
+def resources(version_id):
+    resourcehandler = requesthandlers.ResourceHandler()
+    return resourcehandler.process(request, version_id)
 
 @app.route('/versions/<version_id>/swaggers', methods=['POST'])
 def swaggers(version_id):
