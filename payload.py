@@ -32,11 +32,11 @@ class OauthPayload(Payload):
 
 class ApiPayload(Payload):
     def setPayload(self, model):
-        self.payload = {'meta':{'type':'api'}, 'content':{"id" :model.id, "title":model.title, "created":str(model.created)}}
+        self.payload = {'meta':{'type':'api', 'created':str(model.created)}, 'content':{"id" :model.id, "title":model.title}}
 
 class VersionPayload(Payload):
     def setPayload(self, model):
-        self.payload = {'meta':{'type':'version'}, 'content':{"id" :model.id, "name":model.name, "base_url":model.base_url}}
+        self.payload = {'meta':{'type':'version', 'created':str(model.created)}, 'content':{"id" :model.id, "name":model.name, "base_url":model.base_url}}
 
 class SwaggerPayload(Payload):
     def setPayload(self, model):
@@ -73,9 +73,10 @@ class EndpointPayload(Payload):
 
 class ResourcePayload(Payload):
     def setPayload(self, model):
-        self.payload = {'meta':{'type':'resource'}, 'content':{"id" :model.resource_id, "name":model.name, "version_id":model.version_id,
-                                                               "description":model.description, "plurality":model.plurality, "relates_to":model.relates_to,
-                                                               "auth_method":model.auth_method, "fields":model.fields}}
+        self.payload = {'meta':{'type':'resource', 'created':str(model.created)},
+                        'content':{"id" :model.id, "name":model.name, "version_id":model.version_id,
+                        "description":model.description, "plurality":model.plurality, "parent":model.parent,
+                        "parameters":model.parameters}}
 
 class ResourceEndpointPayload(Payload):
     def setPayload(self, model):

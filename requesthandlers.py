@@ -173,7 +173,7 @@ class VersionHandler(BearerRequestHandler):
 
         version = self.Versions.query(name=name, api_id=api_id, active=True).get()
         if not version._id:
-            version = self.Versions(id=name, name=name, api_id=api_id, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
+            version = self.Versions(id=Util.generate_id(name+api_id), name=name, api_id=api_id, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
             version.put()
 
             response = make_response(VersionPayload(version).getPayload(), 201)
@@ -185,6 +185,22 @@ class VersionHandler(BearerRequestHandler):
         #response = make_response(VersionPayload(version).getPayload(), 201)
 
         return response
+
+    def get(self, request, *argv):
+        api_id = argv[0]
+
+        versions = self.Versions.query(user_id=self.oauth.user_id, api_id=api_id, active=True).fetch()
+
+        versions_payload = []
+
+        for version in versions:
+            tmp = Map(version)
+            versions_payload.append(VersionPayload(tmp).getPayload(False))
+
+        response = make_response(json.dumps(versions_payload), 200)
+
+        return response
+
 
 class ResourceHandler(BearerRequestHandler):
     def post(self, request, *argv):

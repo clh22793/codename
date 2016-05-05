@@ -58,7 +58,7 @@ def apis_by_id(api_id):
     apihandler = requesthandlers.ApiHandler()
     return apihandler.process(request, api_id)
 
-@app.route('/apis/<api_id>/versions', methods=['POST'])
+@app.route('/apis/<api_id>/versions', methods=['POST', 'GET'])
 def versions(api_id):
     versionhandler = requesthandlers.VersionHandler()
     return versionhandler.process(request, api_id)
