@@ -11,12 +11,16 @@ from payload import OauthPayload
 from payload import ApiPayload
 from payload import VersionPayload
 from payload import SwaggerPayload
+
+from models import Map
+
 from models import model_user
 from models import model_oauth
 from models import model_api
 from models import model_swagger
 from models import model_client
 from models import model_version
+
 
 class RequestHandler():
     def __init__(self):
@@ -131,14 +135,35 @@ class ApiHandler(BearerRequestHandler):
             api.put()
 
             response = make_response(ApiPayload(api).getPayload(), 201)
-            #return response
-
         else:
             raise customexception.ResourceException(customexception.api_already_exists)
 
-        #response = make_response(ApiPayload(api).getPayload(), 201)
+        return response
+
+    def get(self, request, resource_id=None):
+        apis = self.Apis.query(user_id=self.oauth.user_id, active=True).fetch()
+
+        apis_payload = []
+
+        for api in apis:
+            tmp = Map(api)
+            apis_payload.append(ApiPayload(tmp).getPayload(False))
+
+        '''
+        if not apis:
+            api = self.Apis(id=Util.generate_id(title+self.oauth.user_id), title=title, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
+            api.put()
+
+            response = make_response(ApiPayload(api).getPayload(), 201)
+        else:
+            raise customexception.ResourceException(customexception.api_already_exists)
 
         return response
+        '''
+
+        response = make_response(json.dumps(apis_payload), 200)
+        return response
+
 
 class VersionHandler(BearerRequestHandler):
     def post(self, request, *argv):

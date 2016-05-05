@@ -48,7 +48,7 @@ def token():
     oauthhandler = requesthandlers.OauthHandler()
     return oauthhandler.process(request)
 
-@app.route('/apis', methods=['POST'])
+@app.route('/apis', methods=['POST', 'GET'])
 def apis():
     apihandler = requesthandlers.ApiHandler()
     return apihandler.process(request)

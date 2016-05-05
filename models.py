@@ -11,6 +11,40 @@ def db_connection():
     conn['dev-saasdoc'].authenticate('devtest', 'devtest', mechanism='SCRAM-SHA-1')
     return conn['dev-saasdoc']
 
+# simple map function
+class Map(dict):
+    """
+    Example:
+    m = Map({'first_name': 'Eduardo'}, last_name='Pool', age=24, sports=['Soccer'])
+    """
+    def __init__(self, *args, **kwargs):
+        super(Map, self).__init__(*args, **kwargs)
+        for arg in args:
+            if isinstance(arg, dict):
+                for k, v in arg.iteritems():
+                    self[k] = v
+
+        if kwargs:
+            for k, v in kwargs.iteritems():
+                self[k] = v
+
+    def __getattr__(self, attr):
+        return self.get(attr)
+
+    def __setattr__(self, key, value):
+        self.__setitem__(key, value)
+
+    def __setitem__(self, key, value):
+        super(Map, self).__setitem__(key, value)
+        self.__dict__.update({key: value})
+
+    def __delattr__(self, item):
+        self.__delitem__(item)
+
+    def __delitem__(self, key):
+        super(Map, self).__delitem__(key)
+        del self.__dict__[key]
+
 # DB MODELS ======
 
 class model_base():
@@ -26,6 +60,7 @@ class model_base():
 
         return self
 
+    # DEPRECATED
     def find_one(self, query):
         entity = model_base.db[self.table].find_one(query)
         return entity
@@ -51,6 +86,11 @@ class model_base():
                 self.query[key] = val
 
         return self
+
+    def fetch(self):
+        entities = model_base.db[self.table].find(self.query)
+
+        return entities
 
     def put(self):
         if self.query:
