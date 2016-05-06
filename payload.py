@@ -2,6 +2,7 @@
 #import time
 import json
 
+# IS THIS USED?!?!?!?!
 class ParameterPayload:
     def __init__(self, name, parameters):
         self.setParameters(name, parameters)
@@ -14,7 +15,14 @@ class ParameterPayload:
 
 class Payload:
     def __init__(self, model):
-        self.setPayload(model)
+        print "MODEL:"
+        print model._id
+        if model._id:
+            self.setPayload(model)
+        else:
+            print "MODEL IS NONE!!!"
+            self.payload = {}
+
 
     def getPayload(self, json_encode=True):
         if json_encode:

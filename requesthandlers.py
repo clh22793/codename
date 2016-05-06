@@ -155,10 +155,10 @@ class ApiHandler(BearerRequestHandler):
         return response
 
     def get(self, **kwargs):
-        id = kwargs['id'] if 'id' in kwargs else None
+        api_id = kwargs['api_id'] if 'api_id' in kwargs else None
 
-        if id:
-            api = self.Apis.query(user_id=self.oauth.user_id, id=id, active=True).get()
+        if api_id:
+            api = self.Apis.query(user_id=self.oauth.user_id, id=api_id, active=True).get()
             response = make_response(ApiPayload(api).getPayload(), 200)
         else:
             apis = self.Apis.query(user_id=self.oauth.user_id, active=True).fetch()
