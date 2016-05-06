@@ -36,42 +36,47 @@ def index():
 @app.route('/clients', methods=['POST'])
 def clients():
     clienthandler = requesthandlers.ClientHandler()
-    return clienthandler.process(request)
+    return clienthandler.process(request=request)
 
 @app.route('/users', methods=['POST'])
 def users():
     userhandler = requesthandlers.UserHandler()
-    return userhandler.process(request)
+    return userhandler.process(request=request)
 
 @app.route('/oauth2/token', methods=['POST'])
 def token():
     oauthhandler = requesthandlers.OauthHandler()
-    return oauthhandler.process(request)
+    return oauthhandler.process(request=request)
 
 @app.route('/apis', methods=['POST', 'GET'])
 def apis():
     apihandler = requesthandlers.ApiHandler()
-    return apihandler.process(request)
+    return apihandler.process(request=request)
 
 @app.route('/apis/<api_id>', methods=['GET'])
 def apis_by_id(api_id):
     apihandler = requesthandlers.ApiHandler()
-    return apihandler.process(request, api_id)
+    return apihandler.process(request=request, api_id=api_id)
 
 @app.route('/apis/<api_id>/versions', methods=['POST', 'GET'])
 def versions(api_id):
     versionhandler = requesthandlers.VersionHandler()
-    return versionhandler.process(request, api_id)
+    return versionhandler.process(request=request, api_id=api_id)
 
 @app.route('/versions/<version_id>/resources', methods=['POST', 'GET'])
 def resources(version_id):
     resourcehandler = requesthandlers.ResourceHandler()
-    return resourcehandler.process(request, version_id)
+    return resourcehandler.process(request=request, version_id=version_id)
+
+@app.route('/resources/<resource_id>', methods=['GET'])
+def resources_by_id(resource_id):
+    resourcehandler = requesthandlers.ResourceHandler()
+    return resourcehandler.process(request=request, resource_id=resource_id)
 
 @app.route('/versions/<version_id>/swaggers', methods=['POST'])
 def swaggers(version_id):
     swaggerhandler = requesthandlers.SwaggerHandler()
-    return swaggerhandler.process(request, version_id)
+    return swaggerhandler.process(request=request, version_id=version_id)
 
 @app.route('/data')
 def names():

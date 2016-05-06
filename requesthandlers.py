@@ -37,17 +37,20 @@ class RequestHandler():
         self.Versions = model_version()
         self.Resources = model_resource()
 
-    def process(self, request, resource_id=None):
-        self.authorize(request)
+    #def process(self, request, resource_id=None):
+    def process(self, **kwargs):
+        self.authorize(kwargs['request'])
+
+        print kwargs
 
         if request.method == 'POST':
-            return self.post(request, resource_id)
+            return self.post(**kwargs)
         elif request.method == 'GET':
-            return self.get(request, resource_id)
+            return self.get(**kwargs)
         elif request.method == 'PUT':
-            return self.put(request, resource_id)
+            return self.put(**kwargs)
         elif request.method == 'DELETE':
-            return self.delete(request, resource_id)
+            return self.delete(**kwargs)
 
 class BearerRequestHandler(RequestHandler):
     def authorize(self, request):
@@ -60,7 +63,9 @@ class BasicRequestHandler(RequestHandler):
         self.client = VerifyRequest.authorization('basic', request)
 
 class ClientHandler(BasicRequestHandler):
-    def post(self, request):
+    def post(self, **kwargs):
+        request = kwargs['request']
+
         email = request.form['email']
         client_secret = request.form['client_secret']
         client_id = request.form['client_id']
@@ -82,7 +87,9 @@ class ClientHandler(BasicRequestHandler):
         return response
 
 class UserHandler(BasicRequestHandler):
-    def post(self, request, resource_id=None):
+    def post(self, **kwargs):
+        request = kwargs['request']
+
         # get vars
         username = request.form['username']
         password = Util.generate_password(request.form['password'])
@@ -102,7 +109,9 @@ class UserHandler(BasicRequestHandler):
             raise customexception.ResourceException(customexception.user_already_exists)
 
 class OauthHandler(BasicRequestHandler):
-    def post(self, request, resource_id=None):
+    def post(self, **kwargs):
+        request = kwargs['request']
+
         # check for user
         username = request.form['username']
         password = request.form['password']
@@ -126,7 +135,9 @@ class OauthHandler(BasicRequestHandler):
         return response
 
 class ApiHandler(BearerRequestHandler):
-    def post(self, request, *argv):
+    def post(self, **kwargs):
+        request = kwargs['request']
+
         data = json.loads(request.get_data())
         title = data['title']
         created = datetime.datetime.utcnow()
@@ -143,7 +154,9 @@ class ApiHandler(BearerRequestHandler):
 
         return response
 
-    def get(self, request, id=None):
+    def get(self, **kwargs):
+        id = kwargs['id'] if 'id' in kwargs else None
+
         if id:
             api = self.Apis.query(user_id=self.oauth.user_id, id=id, active=True).get()
             response = make_response(ApiPayload(api).getPayload(), 200)
@@ -162,8 +175,10 @@ class ApiHandler(BearerRequestHandler):
 
 
 class VersionHandler(BearerRequestHandler):
-    def post(self, request, *argv):
-        api_id = argv[0]
+    def post(self, **kwargs):
+        #api_id = argv[0]
+        request = kwargs['request']
+        api_id = kwargs['api_id'] if 'api_id' in kwargs else None
 
         data = json.loads(request.get_data())
         name = data['name']
@@ -186,8 +201,8 @@ class VersionHandler(BearerRequestHandler):
 
         return response
 
-    def get(self, request, *argv):
-        api_id = argv[0]
+    def get(self, **kwargs):
+        api_id = kwargs['api_id'] if 'api_id' in kwargs else None
 
         versions = self.Versions.query(user_id=self.oauth.user_id, api_id=api_id, active=True).fetch()
 
@@ -202,8 +217,9 @@ class VersionHandler(BearerRequestHandler):
         return response
 
 class ResourceHandler(BearerRequestHandler):
-    def post(self, request, *argv):
-        version_id = argv[0]
+    def post(self, **kwargs):
+        request = kwargs['request']
+        version_id = kwargs['version_id'] if 'version_id' in kwargs else None
 
         data = json.loads(request.get_data())
         name = data['name']
@@ -229,18 +245,25 @@ class ResourceHandler(BearerRequestHandler):
 
         return response
 
-    def get(self, request, *argv):
-        version_id = argv[0]
+    def get(self, **kwargs):
+        version_id = kwargs['version_id'] if 'version_id' in kwargs else None
+        resource_id = kwargs['resource_id'] if 'resource_id' in kwargs else None
 
-        resources = self.Resources.query(user_id=self.oauth.user_id, version_id=version_id, active=True).fetch()
+        if version_id:
+            resources = self.Resources.query(user_id=self.oauth.user_id, version_id=version_id, active=True).fetch()
 
-        resources_payload = []
+            resources_payload = []
 
-        for resource in resources:
-            tmp = Map(resource)
-            resources_payload.append(ResourcePayload(tmp).getPayload(False))
+            for resource in resources:
+                tmp = Map(resource)
+                resources_payload.append(ResourcePayload(tmp).getPayload(False))
 
-        response = make_response(json.dumps(resources_payload), 200)
+            response = make_response(json.dumps(resources_payload), 200)
+
+        elif resource_id:
+            resource = self.Resources.query(user_id=self.oauth.user_id, id=resource_id, active=True).get()
+            response = make_response(ResourcePayload(resource).getPayload(), 200)
+
 
         return response
 
@@ -253,8 +276,9 @@ class SwaggerHandler(BearerRequestHandler):
         return '.' in filename and \
             filename.rsplit('.', 1)[1] in SwaggerHandler.ALLOWED_EXTENSIONS
 
-    def post(self, request, *argv):
-        version_id = argv[0]
+    def post(self, **kwargs):
+        request = kwargs['request']
+        version_id = kwargs['version_id'] if 'version_id' in kwargs else None
 
         file = request.files['file']
         if file and self.allowed_file(file.filename):
