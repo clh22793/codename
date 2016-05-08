@@ -18,7 +18,8 @@ class VerifyRequest:
 
         if type.lower() == 'basic':
             # basic authorization
-            client = clients.query(token=auth_header[1], active=True).get()
+            client = clients.get(token=auth_header[1], active=True)
+            print client
 
             if not client._id:
                 raise customexception.AuthException(customexception.invalid_client)

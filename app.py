@@ -68,7 +68,7 @@ def resources(version_id):
     resourcehandler = requesthandlers.ResourceHandler()
     return resourcehandler.process(request=request, version_id=version_id)
 
-@app.route('/resources/<resource_id>', methods=['GET'])
+@app.route('/resources/<resource_id>', methods=['PUT', 'GET'])
 def resources_by_id(resource_id):
     resourcehandler = requesthandlers.ResourceHandler()
     return resourcehandler.process(request=request, resource_id=resource_id)

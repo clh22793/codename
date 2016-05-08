@@ -15,14 +15,11 @@ class ParameterPayload:
 
 class Payload:
     def __init__(self, model):
-        print "MODEL:"
-        print model._id
-        if model._id:
+        if model.id:
             self.setPayload(model)
         else:
             print "MODEL IS NONE!!!"
             self.payload = {}
-
 
     def getPayload(self, json_encode=True):
         if json_encode:
@@ -32,7 +29,7 @@ class Payload:
 
 class UsersPayload(Payload):
     def setPayload(self, model):
-        self.payload = {'meta': {'type':'user', 'created':str(model.created)}, 'content': {'id':model.user_id, 'username':model.username}}
+        self.payload = {'meta': {'type':'user', 'created':str(model.created)}, 'content': {'id':model.id, 'username':model.username}}
 
 class OauthPayload(Payload):
     def setPayload(self, model):

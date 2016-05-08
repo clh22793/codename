@@ -1,5 +1,6 @@
 import pymongo, datetime, hashlib, base64
 from pymongo import MongoClient
+from bson.objectid import ObjectId
 
 # INIT DB CONNECTION
 def get_mongo_connection():
@@ -51,12 +52,13 @@ class model_base():
     db = db_connection()
 
     def __init__(self):
+        self.values = {}
         self.set_table()
 
     def __call__(self, **dict):
-        self.query = {}
+        self.values = {}
         for key, val in dict.items():
-            self.query[key] = val
+            self.values[key] = val
 
         return self
 
@@ -72,36 +74,97 @@ class model_base():
         return entity
 
     def query(self, **dict):
-        self.query = {}
+        self.values = {}
         for key, val in dict.items():
-            self.query[key] = val
+            self.values[key] = val
 
         return self
 
-    def get(self):
-        entity = model_base.db[self.table].find_one(self.query)
+    def get(self, **kwargs):
+        query = {}
+        for key in kwargs:
+            query[key] = kwargs[key]
+
+        entity = model_base.db[self.table].find_one(query)
 
         if entity:
-            for key, val in entity.items():
-                self.query[key] = val
-
-        return self
-
-    def fetch(self):
-        entities = model_base.db[self.table].find(self.query)
-
-        return entities
-
-    def put(self):
-        if self.query:
-            uid = model_base.db[self.table].insert_one(self.query).inserted_id
-            return self
-
-    def __getattr__(self, name):
-        if name in self.query:
-            return self.query[name]
+            return Map(entity)
         else:
             return None
+
+    def fetch(self, **kwargs):
+        query = {}
+        for key in kwargs:
+            query[key] = kwargs[key]
+
+        entities = model_base.db[self.table].find(query)
+        return entities
+
+    def insert(self, **kwargs):
+        query = {}
+        for key in kwargs:
+            query[key] = kwargs[key]
+
+        result = model_base.db[self.table].insert_one(query)
+
+        if result.inserted_id:
+            return Map(query)
+        else:
+            return None
+
+    def put(self, **kwargs):
+        query = {}
+        for key in kwargs:
+            query[key] = kwargs[key]
+
+        id = query['id'] if 'id' in query else None
+
+        result = model_base.db[self.table].replace_one({'id':id}, query, True)
+
+        if result.modified_count == 1:
+            return Map(query)
+        else:
+            return None
+
+    def update(self, **kwargs):
+        query = {}
+        query["$set"] = {}
+        for key in kwargs:
+            if key != "id":
+                query["$set"][key] = kwargs[key]
+                #query[key] = kwargs[key]
+
+        id = kwargs['id'] if 'id' in kwargs else None
+
+        result = model_base.db[self.table].update_one({'id':id}, query)
+
+        print "UPDATE===="
+        print "UPDATING ID: "
+        print id
+        print "modified_count: "
+        print result.modified_count
+
+        if result.modified_count == 1:
+            return Map(query)
+        else:
+            return None
+
+    def __getattr__(self, name):
+        if name in self.values:
+            return self.values[name]
+        else:
+            return None
+
+    '''
+    def __setattr__(self, name, value):
+        #self.values[name] = value
+        print "__setattr__"
+        print name
+        print value
+        self.__dict__[name] = value
+    '''
+
+
 
 class model_client(model_base):
     def set_table(self):

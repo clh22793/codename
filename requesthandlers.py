@@ -97,10 +97,9 @@ class UserHandler(BasicRequestHandler):
         created = datetime.datetime.utcnow()
         user_id= Util.generate_token('user'+username+password)
 
-        user = self.Users.query(username=username, active=True).get()
-        if not user._id:
-            user = self.Users(username=username, user_id=user_id, password=password, active=active, created=created)
-            user.put()
+        user = self.Users.get(username=username, active=True)
+        if not user:
+            user = self.Users.insert(username=username, id=user_id, password=password, active=active, created=created)
 
             response = make_response(UsersPayload(user).getPayload(), 201)
             return response
@@ -115,9 +114,9 @@ class OauthHandler(BasicRequestHandler):
         # check for user
         username = request.form['username']
         password = request.form['password']
-        user = self.Users.query(username=username, password=Util.generate_password(password)).get()
+        user = self.Users.get(username=username, password=Util.generate_password(password))
 
-        if user.user_id:
+        if user:
             # create token
             access_token = Util.generate_token('access_token'+username+password)
             refresh_token = Util.generate_token('access_token'+username+password)
@@ -125,8 +124,10 @@ class OauthHandler(BasicRequestHandler):
             active = True
             user_id = user.user_id
 
-            oauth = self.Oauths(access_token=access_token, refresh_token=refresh_token, created=created, active=active, user_id=user_id, client_id=self.client.id)
-            oauth.put()
+            oauth = self.Oauths.insert(id=Util.generate_id(access_token), access_token=access_token, refresh_token=refresh_token, created=created, active=active, user_id=user_id, client_id=self.client.id)
+
+            print "insert OAUTH===="
+            print oauth
 
             response = make_response(OauthPayload(oauth).getPayload(), 201)
         else:
@@ -143,10 +144,9 @@ class ApiHandler(BearerRequestHandler):
         created = datetime.datetime.utcnow()
         active = True
 
-        api = self.Apis.query(title=title, active=True).get()
-        if not api._id:
-            api = self.Apis(id=Util.generate_id(title+self.oauth.user_id), title=title, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
-            api.put()
+        api = self.Apis.get(title=title, active=True)
+        if not api:
+            api = self.Apis.insert(id=Util.generate_id(title+self.oauth.user_id), title=title, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
 
             response = make_response(ApiPayload(api).getPayload(), 201)
         else:
@@ -158,10 +158,10 @@ class ApiHandler(BearerRequestHandler):
         api_id = kwargs['api_id'] if 'api_id' in kwargs else None
 
         if api_id:
-            api = self.Apis.query(user_id=self.oauth.user_id, id=api_id, active=True).get()
+            api = self.Apis.get(user_id=self.oauth.user_id, id=api_id, active=True)
             response = make_response(ApiPayload(api).getPayload(), 200)
         else:
-            apis = self.Apis.query(user_id=self.oauth.user_id, active=True).fetch()
+            apis = self.Apis.fetch(user_id=self.oauth.user_id, active=True)
 
             apis_payload = []
 
@@ -186,13 +186,11 @@ class VersionHandler(BearerRequestHandler):
         active = True
         #id = Util.generate_id(name+self.oauth.user_id)
 
-        version = self.Versions.query(name=name, api_id=api_id, active=True).get()
-        if not version._id:
-            version = self.Versions(id=Util.generate_id(name+api_id), name=name, api_id=api_id, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
-            version.put()
+        version = self.Versions.get(name=name, api_id=api_id, active=True)
+        if not version:
+            version = self.Versions.insert(id=Util.generate_id(name+api_id), name=name, api_id=api_id, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
 
             response = make_response(VersionPayload(version).getPayload(), 201)
-            #return response
 
         else:
             raise customexception.ResourceException(customexception.version_already_exists)
@@ -204,7 +202,7 @@ class VersionHandler(BearerRequestHandler):
     def get(self, **kwargs):
         api_id = kwargs['api_id'] if 'api_id' in kwargs else None
 
-        versions = self.Versions.query(user_id=self.oauth.user_id, api_id=api_id, active=True).fetch()
+        versions = self.Versions.fetch(user_id=self.oauth.user_id, api_id=api_id, active=True)
 
         versions_payload = []
 
@@ -228,20 +226,15 @@ class ResourceHandler(BearerRequestHandler):
         parameters = data['parameters']
         created = datetime.datetime.utcnow()
         active = True
-        #id = Util.generate_id(name+self.oauth.user_id)
 
-        resource = self.Resources.query(name=name, version_id=version_id, active=True).get()
+        resource = self.Resources.get(name=name, version_id=version_id, active=True)
         if not resource._id:
-            resource = self.Resources(id=Util.generate_id(name), name=name, version_id=version_id, plurality=plurality, parent=parent, parameters=parameters, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
-            resource.put()
+            resource = self.Resources.insert(id=Util.generate_id(name), name=name, version_id=version_id, plurality=plurality, parent=parent, parameters=parameters, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
 
             response = make_response(ResourcePayload(resource).getPayload(), 201)
-            #return response
 
         else:
             raise customexception.ResourceException(customexception.resource_already_exists)
-
-        #response = make_response(VersionPayload(version).getPayload(), 201)
 
         return response
 
@@ -250,7 +243,7 @@ class ResourceHandler(BearerRequestHandler):
         resource_id = kwargs['resource_id'] if 'resource_id' in kwargs else None
 
         if version_id:
-            resources = self.Resources.query(user_id=self.oauth.user_id, version_id=version_id, active=True).fetch()
+            resources = self.Resources.fetch(user_id=self.oauth.user_id, version_id=version_id, active=True)
 
             resources_payload = []
 
@@ -261,9 +254,28 @@ class ResourceHandler(BearerRequestHandler):
             response = make_response(json.dumps(resources_payload), 200)
 
         elif resource_id:
-            resource = self.Resources.query(user_id=self.oauth.user_id, id=resource_id, active=True).get()
+            resource = self.Resources.get(user_id=self.oauth.user_id, id=resource_id, active=True)
             response = make_response(ResourcePayload(resource).getPayload(), 200)
 
+
+        return response
+
+    def put(self, **kwargs):
+        resource_id = kwargs['resource_id'] if 'resource_id' in kwargs else None
+
+        data = json.loads(request.get_data())
+        name = data['name']
+        plurality = data['plurality']
+        parent = data['parent']
+        parameters = data['parameters']
+        created = datetime.datetime.utcnow()
+        active = True
+        #id = Util.generate_id(name+self.oauth.user_id)
+
+        resource = self.Resources.update(id=resource_id, name=name, plurality=plurality, parent=parent, parameters=parameters)
+        #resource = self.Resources(id=Util.generate_id(name), name=name, version_id=version_id, plurality=plurality, parent=parent, parameters=parameters, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
+
+        response = make_response(ResourcePayload(resource).getPayload(), 200)
 
         return response
 
