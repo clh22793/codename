@@ -228,7 +228,7 @@ class ResourceHandler(BearerRequestHandler):
         active = True
 
         resource = self.Resources.get(name=name, version_id=version_id, active=True)
-        if not resource._id:
+        if not resource:
             resource = self.Resources.insert(id=Util.generate_id(name), name=name, version_id=version_id, plurality=plurality, parent=parent, parameters=parameters, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
 
             response = make_response(ResourcePayload(resource).getPayload(), 201)
@@ -257,7 +257,6 @@ class ResourceHandler(BearerRequestHandler):
             resource = self.Resources.get(user_id=self.oauth.user_id, id=resource_id, active=True)
             response = make_response(ResourcePayload(resource).getPayload(), 200)
 
-
         return response
 
     def put(self, **kwargs):
@@ -268,16 +267,18 @@ class ResourceHandler(BearerRequestHandler):
         plurality = data['plurality']
         parent = data['parent']
         parameters = data['parameters']
-        created = datetime.datetime.utcnow()
-        active = True
-        #id = Util.generate_id(name+self.oauth.user_id)
 
         resource = self.Resources.update(id=resource_id, name=name, plurality=plurality, parent=parent, parameters=parameters)
-        #resource = self.Resources(id=Util.generate_id(name), name=name, version_id=version_id, plurality=plurality, parent=parent, parameters=parameters, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
 
-        response = make_response(ResourcePayload(resource).getPayload(), 200)
+        if resource:
+            resource = self.Resources.get(id=resource_id)
 
-        return response
+            response = make_response(ResourcePayload(resource).getPayload(), 200)
+            print "response==="
+            print response
+
+
+            return response
 
 
 class SwaggerHandler(BearerRequestHandler):

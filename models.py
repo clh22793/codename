@@ -112,6 +112,7 @@ class model_base():
         else:
             return None
 
+    # DEPRECATED
     def put(self, **kwargs):
         query = {}
         for key in kwargs:
@@ -143,9 +144,10 @@ class model_base():
         print id
         print "modified_count: "
         print result.modified_count
+        print result.raw_result
 
         if result.modified_count == 1:
-            return Map(query)
+            return result
         else:
             return None
 
