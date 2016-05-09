@@ -299,16 +299,17 @@ class EndpointHandler(BearerRequestHandler):
         har_request = data['har_request']
         method = data['method']
         name = data['name']
+        collection = data['collection'] if 'collection' in data else False
         created = datetime.datetime.utcnow()
         active = True
 
-        endpoint = self.Endpoints.get(method=method, resource_id=resource_id, active=True)
+        endpoint = self.Endpoints.get(method=method, resource_id=resource_id, collection=collection, active=True)
 
         if endpoint:
             self.Endpoints.update(id=endpoint.id, active=False)
 
         #if not endpoint:
-        endpoint = self.Endpoints.insert(id=Util.generate_id(method), method=method, har_request=har_request, name=name, resource_id=resource_id, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
+        endpoint = self.Endpoints.insert(id=Util.generate_id(method), method=method, collection=collection, har_request=har_request, name=name, resource_id=resource_id, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
 
         response = make_response(EndpointPayload(endpoint).getPayload(), 201)
         #else:
