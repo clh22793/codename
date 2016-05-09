@@ -62,19 +62,10 @@ class SectionPayload(Payload):
     def setPayload(self, model):
         self.payload = {'meta':{'type':'section'}, 'content':{"id" :model.section_id, "name":model.name, "content": model.content, "version_id":model.version_id}}
 
-# DEPRECATED
 class EndpointPayload(Payload):
     def setPayload(self, model):
-        self.payload = {'meta':{'type':'endpoint'}, 'content':{"id" :model.endpoint_id, "relative_url":model.relative_url, "title":model.title,
-                                                               "http_method": model.http_method, "header_params":model.header_params,
-                                                               "body_params":model.body_params, "query_params":model.query_params,
-                                                               "sample_response":model.sample_response, "response_content_type":model.response_content_type,
-                                                               "description":model.description, "response_http_code":model.response_http_code,
-                                                               "example_request":model.example_request, "request_content_type":model.request_content_type,
-                                                               "resourcegroup_id":model.resourcegroup_id, "priority":model.priority, "version":model.version_id,
-                                                               "resourcegroup":model.resource_group, "python_code":model.python_code,
-                                                               "curl_code":model.curl_code, "php_code":model.php_code, "node_code":model.node_code,
-                                                               "java_code":model.java_code}}
+        self.payload = {'meta':{'type':'endpoint', 'created':str(model.created)}, 'content':{"id" :model.id, "har_request":model.har_request, "method":model.method,
+                                                               "name": model.name}}
 
 class ResourcePayload(Payload):
     def setPayload(self, model):

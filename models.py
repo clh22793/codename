@@ -157,17 +157,6 @@ class model_base():
         else:
             return None
 
-    '''
-    def __setattr__(self, name, value):
-        #self.values[name] = value
-        print "__setattr__"
-        print name
-        print value
-        self.__dict__[name] = value
-    '''
-
-
-
 class model_client(model_base):
     def set_table(self):
         self.table = 'clients'
@@ -195,3 +184,7 @@ class model_version(model_base):
 class model_resource(model_base):
     def set_table(self):
         self.table = 'resources'
+
+class model_endpoint(model_base):
+    def set_table(self):
+        self.table = 'endpoints'

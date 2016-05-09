@@ -30,9 +30,9 @@ class VerifyRequest:
             print "TOKEN:"
             print auth_header[1]
 
-            oauth = oauths.query(access_token=auth_header[1], active=True).get()
+            oauth = oauths.get(access_token=auth_header[1], active=True)
 
-            if not oauth._id:
+            if not oauth:
                 raise customexception.AuthException(customexception.invalid_token)
             else:
                 return oauth

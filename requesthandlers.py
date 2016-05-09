@@ -11,6 +11,7 @@ from payload import OauthPayload
 from payload import ApiPayload
 from payload import VersionPayload
 from payload import ResourcePayload
+from payload import EndpointPayload
 from payload import SwaggerPayload
 
 from models import Map
@@ -22,6 +23,7 @@ from models import model_swagger
 from models import model_client
 from models import model_version
 from models import model_resource
+from models import model_endpoint
 
 
 class RequestHandler():
@@ -36,12 +38,10 @@ class RequestHandler():
         self.Clients = model_client()
         self.Versions = model_version()
         self.Resources = model_resource()
+        self.Endpoints = model_endpoint()
 
-    #def process(self, request, resource_id=None):
     def process(self, **kwargs):
         self.authorize(kwargs['request'])
-
-        print kwargs
 
         if request.method == 'POST':
             return self.post(**kwargs)
@@ -253,7 +253,69 @@ class ResourceHandler(BearerRequestHandler):
 
             response = make_response(json.dumps(resources_payload), 200)
 
-        elif resource_id:
+        else: # resource_id
+            resource = self.Resources.get(user_id=self.oauth.user_id, id=resource_id, active=True)
+            response = make_response(ResourcePayload(resource).getPayload(), 200)
+
+        return response
+
+    def put(self, **kwargs):
+        resource_id = kwargs['resource_id'] if 'resource_id' in kwargs else None
+
+        data = json.loads(request.get_data())
+        name = data['name']
+        plurality = data['plurality']
+        parent = data['parent']
+        parameters = data['parameters']
+
+        resource = self.Resources.update(id=resource_id, name=name, plurality=plurality, parent=parent, parameters=parameters)
+
+        if resource:
+            resource = self.Resources.get(id=resource_id)
+
+            response = make_response(ResourcePayload(resource).getPayload(), 200)
+
+            return response
+
+class EndpointHandler(BearerRequestHandler):
+    def post(self, **kwargs):
+        request = kwargs['request']
+        resource_id = kwargs['resource_id'] if 'resource_id' in kwargs else None
+
+        data = json.loads(request.get_data())
+        har_request = data['har_request']
+        method = data['method']
+        name = data['name']
+        created = datetime.datetime.utcnow()
+        active = True
+
+        endpoint = self.Endpoints.get(method=method, resource_id=resource_id, active=True)
+
+        if not endpoint:
+            endpoint = self.Endpoints.insert(id=Util.generate_id(method), method=method, har_request=har_request, name=name, resource_id=resource_id, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
+
+            response = make_response(EndpointPayload(endpoint).getPayload(), 201)
+        else:
+            raise customexception.ResourceException(customexception.resource_already_exists)
+
+        return response
+
+    def get(self, **kwargs):
+        version_id = kwargs['version_id'] if 'version_id' in kwargs else None
+        resource_id = kwargs['resource_id'] if 'resource_id' in kwargs else None
+
+        if version_id:
+            resources = self.Resources.fetch(user_id=self.oauth.user_id, version_id=version_id, active=True)
+
+            resources_payload = []
+
+            for resource in resources:
+                tmp = Map(resource)
+                resources_payload.append(ResourcePayload(tmp).getPayload(False))
+
+            response = make_response(json.dumps(resources_payload), 200)
+
+        else: # resource_id
             resource = self.Resources.get(user_id=self.oauth.user_id, id=resource_id, active=True)
             response = make_response(ResourcePayload(resource).getPayload(), 200)
 

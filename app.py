@@ -73,6 +73,11 @@ def resources_by_id(resource_id):
     resourcehandler = requesthandlers.ResourceHandler()
     return resourcehandler.process(request=request, resource_id=resource_id)
 
+@app.route('/resources/<resource_id>/endpoints', methods=['POST'])
+def endpoints(resource_id):
+    endpointhandler = requesthandlers.EndpointHandler()
+    return endpointhandler.process(request=request, resource_id=resource_id)
+
 @app.route('/versions/<version_id>/swaggers', methods=['POST'])
 def swaggers(version_id):
     swaggerhandler = requesthandlers.SwaggerHandler()
