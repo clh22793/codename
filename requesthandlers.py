@@ -225,11 +225,20 @@ class ResourceHandler(BearerRequestHandler):
         parent = data['parent']
         parameters = data['parameters']
         created = datetime.datetime.utcnow()
+        resource_id = Util.generate_id(name)
         active = True
 
         resource = self.Resources.get(name=name, version_id=version_id, active=True)
         if not resource:
-            resource = self.Resources.insert(id=Util.generate_id(name), name=name, version_id=version_id, plurality=plurality, parent=parent, parameters=parameters, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
+            resource = self.Resources.insert(id=resource_id, name=name, version_id=version_id, plurality=plurality, parent=parent, parameters=parameters, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
+
+            # Now, create endpoints
+            '''
+            har_request = {"method":"post", "url":"http://some.test.com", "headers":"headers", "queryString":"myqueries", "postData":"mydata"};
+            request.set_data({"har_request":har_request, "method":"post", "name":"Add a "+name})
+            endpointhandler = EndpointHandler()
+            endpoint = endpointhandler.process(request=request, resource_id=resource_id)
+            '''
 
             response = make_response(ResourcePayload(resource).getPayload(), 201)
 
@@ -283,6 +292,10 @@ class EndpointHandler(BearerRequestHandler):
         resource_id = kwargs['resource_id'] if 'resource_id' in kwargs else None
 
         data = json.loads(request.get_data())
+
+        print "ENDPOINT DATA==="
+        print data
+
         har_request = data['har_request']
         method = data['method']
         name = data['name']
@@ -291,12 +304,15 @@ class EndpointHandler(BearerRequestHandler):
 
         endpoint = self.Endpoints.get(method=method, resource_id=resource_id, active=True)
 
-        if not endpoint:
-            endpoint = self.Endpoints.insert(id=Util.generate_id(method), method=method, har_request=har_request, name=name, resource_id=resource_id, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
+        if endpoint:
+            self.Endpoints.update(id=endpoint.id, active=False)
 
-            response = make_response(EndpointPayload(endpoint).getPayload(), 201)
-        else:
-            raise customexception.ResourceException(customexception.resource_already_exists)
+        #if not endpoint:
+        endpoint = self.Endpoints.insert(id=Util.generate_id(method), method=method, har_request=har_request, name=name, resource_id=resource_id, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
+
+        response = make_response(EndpointPayload(endpoint).getPayload(), 201)
+        #else:
+        #    raise customexception.ResourceException(customexception.resource_already_exists)
 
         return response
 
@@ -321,6 +337,7 @@ class EndpointHandler(BearerRequestHandler):
 
         return response
 
+    # DEPRECATED - DO I NEED THIS?!?!?!?!?!
     def put(self, **kwargs):
         resource_id = kwargs['resource_id'] if 'resource_id' in kwargs else None
 

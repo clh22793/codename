@@ -1,14 +1,6 @@
-#from webapp2_extras import json
-#from google.appengine.ext import ndb
-#from google.appengine.api import urlfetch
 import json
 import hashlib, time, random, re, base64
 import customexception
-
-#from models import OauthRec
-#from models import Version
-#from models import Section
-
 
 class Util:
     @staticmethod
@@ -46,12 +38,14 @@ class Util:
         oauth.put()
         return oauth
 
+    # DEPRECATED
     @staticmethod
     def create_version(name, saasdoc):
         version = Version(parent = saasdoc.key, name = name, version_id = Util.generate_token('version'+name), saasdoc_id = saasdoc.saasdoc_id)
         version.put()
         return version
 
+    # DEPRECATED
     @staticmethod
     def create_section(name, version, content, order):
         section = Section(parent = version.key, name = name, order=order, content=content, section_id = Util.generate_token('section'+name), saasdoc_id=version.saasdoc_id, version_id=version.version_id)
