@@ -130,9 +130,9 @@ class model_base():
         query = {}
         query["$set"] = {}
         for key in kwargs:
-            if key != "id":
-                query["$set"][key] = kwargs[key]
-                #query[key] = kwargs[key]
+            query["$set"][key] = kwargs[key]
+
+        query["$currentDate"] = {"lastModified":True}
 
         id = kwargs['id'] if 'id' in kwargs else None
 
