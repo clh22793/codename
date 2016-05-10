@@ -56,8 +56,6 @@ class SaasdocPayload(Payload):
                                                               "logo_height":model.logo_height, "logo_offset":(80 - model.logo_height) / 2,
                                                               "start_tour":model.start_tour, "apiname":model.apiname}}
 
-
-
 class SectionPayload(Payload):
     def setPayload(self, model):
         self.payload = {'meta':{'type':'section'}, 'content':{"id" :model.section_id, "name":model.name, "content": model.content, "version_id":model.version_id}}

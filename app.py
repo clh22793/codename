@@ -1,5 +1,5 @@
 from flask import Flask, json, request, make_response
-import datetime, base64, logging
+import datetime, base64, logging, requests
 
 # internal imports
 import customexception
@@ -77,6 +77,34 @@ def resources_by_id(resource_id):
 def endpoints(resource_id):
     endpointhandler = requesthandlers.EndpointHandler()
     return endpointhandler.process(request=request, resource_id=resource_id)
+
+@app.route('/batch', methods=['POST'])
+def batch():
+    datas = json.loads(request.get_data())
+    batch_responses = []
+
+    print "datas:"
+    print datas
+    for data in datas:
+        method = data['method']
+        relative_url = data['relative_url']
+        body = data['body']
+        print "data:"
+        print data
+        r = requests.post('http://localhost:5000/'+relative_url, data = body, headers=request.headers)
+
+        print "response:"
+        print r.json()
+        batch_responses.append(r.json())
+
+    print "batch_responses:"
+    print batch_responses
+
+    response = make_response(json.dumps(batch_responses), 200)
+    return response
+
+    #endpointhandler = requesthandlers.EndpointHandler()
+    #return endpointhandler.process(request=request, resource_id=resource_id)
 
 @app.route('/versions/<version_id>/swaggers', methods=['POST'])
 def swaggers(version_id):
