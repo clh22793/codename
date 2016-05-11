@@ -63,7 +63,7 @@ class SectionPayload(Payload):
 class EndpointPayload(Payload):
     def setPayload(self, model):
         self.payload = {'meta':{'type':'endpoint', 'created':str(model.created)}, 'content':{"id" :model.id, "har_request":model.har_request, "method":model.method,
-                                                               "name": model.name}}
+                                                               "name": model.name, "code_snippets":model.code_snippets}}
 
 class ResourcePayload(Payload):
     def setPayload(self, model):

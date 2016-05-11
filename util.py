@@ -1,4 +1,4 @@
-import json
+import json, requests
 import hashlib, time, random, re, base64
 import customexception
 
@@ -272,11 +272,18 @@ class Util:
 
     @staticmethod
     def get_code_snippets(har_request):
+        '''
         response = urlfetch.fetch('http://45.55.47.103/har',
                 payload=json.encode(har_request),
                 method=urlfetch.POST)
+        '''
+        print 'get code for har_request:'
+        print har_request
 
-        return json.decode(response.content)
+        response = requests.post('http://45.55.47.103/har', json.dumps(har_request))
+
+        print response.json()
+        return response.json()
 
     @staticmethod
     def get_auth_token(type, request):

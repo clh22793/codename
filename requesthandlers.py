@@ -309,7 +309,9 @@ class EndpointHandler(BearerRequestHandler):
             self.Endpoints.update(id=endpoint.id, active=False)
 
         #if not endpoint:
-        endpoint = self.Endpoints.insert(id=Util.generate_id(method), method=method, collection=collection, har_request=har_request, name=name, resource_id=resource_id, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
+
+        code_snippets = Util.get_code_snippets(har_request)
+        endpoint = self.Endpoints.insert(id=Util.generate_id(method), code_snippets=code_snippets, method=method, collection=collection, har_request=har_request, name=name, resource_id=resource_id, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
 
         response = make_response(EndpointPayload(endpoint).getPayload(), 201)
         #else:
@@ -318,23 +320,18 @@ class EndpointHandler(BearerRequestHandler):
         return response
 
     def get(self, **kwargs):
-        version_id = kwargs['version_id'] if 'version_id' in kwargs else None
+        request = kwargs['request']
         resource_id = kwargs['resource_id'] if 'resource_id' in kwargs else None
 
-        if version_id:
-            resources = self.Resources.fetch(user_id=self.oauth.user_id, version_id=version_id, active=True)
+        endpoints = self.Endpoints.fetch(resource_id=resource_id, active=True)
 
-            resources_payload = []
+        endpoints_payload = []
 
-            for resource in resources:
-                tmp = Map(resource)
-                resources_payload.append(ResourcePayload(tmp).getPayload(False))
+        for endpoint in endpoints:
+            tmp = Map(endpoint)
+            endpoints_payload.append(EndpointPayload(tmp).getPayload(False))
 
-            response = make_response(json.dumps(resources_payload), 200)
-
-        else: # resource_id
-            resource = self.Resources.get(user_id=self.oauth.user_id, id=resource_id, active=True)
-            response = make_response(ResourcePayload(resource).getPayload(), 200)
+        response = make_response(json.dumps(endpoints_payload), 200)
 
         return response
 
