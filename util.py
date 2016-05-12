@@ -295,10 +295,6 @@ class Util:
 
     @staticmethod
     def get_relative_url(method, resource, collection, parent_resource=None):
-        print "get_relative_url:"
-        print method
-        print collection
-
         if method.lower() == 'get' and collection == True and parent_resource:
             relative_url = parent_resource.plurality+"/{"+parent_resource.name+"_id}/"+resource.plurality
         elif method.lower() == 'get' and collection == True:
@@ -314,7 +310,7 @@ class Util:
         else:
             relative_url = resource.plurality+"/{"+resource.name.lower()+"_id}"
 
-        return relative_url
+        return relative_url.lower()
 
     @staticmethod
     def generate_har_request(method, resource, relative_url):

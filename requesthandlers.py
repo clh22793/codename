@@ -233,14 +233,6 @@ class ResourceHandler(BearerRequestHandler):
         if not resource:
             resource = self.Resources.insert(id=resource_id, name=name, version_id=version_id, plurality=plurality, parent_resource_id=parent_resource_id, parameters=parameters, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
 
-            # Now, create endpoints
-            '''
-            har_request = {"method":"post", "url":"http://some.test.com", "headers":"headers", "queryString":"myqueries", "postData":"mydata"};
-            request.set_data({"har_request":har_request, "method":"post", "name":"Add a "+name})
-            endpointhandler = EndpointHandler()
-            endpoint = endpointhandler.process(request=request, resource_id=resource_id)
-            '''
-
             response = make_response(ResourcePayload(resource).getPayload(), 201)
 
         else:
@@ -294,7 +286,6 @@ class EndpointHandler(BearerRequestHandler):
 
         data = json.loads(request.get_data())
 
-        #har_request = data['har_request'] HACK leftover
         method = data['method']
         name = data['name']
         collection = data['collection'] if 'collection' in data else False
@@ -307,13 +298,8 @@ class EndpointHandler(BearerRequestHandler):
         if endpoint:
             self.Endpoints.update(id=endpoint.id, active=False)
 
-        print "parent resource id:"
-        print resource.parent_resource_id
-
         if resource.parent_resource_id:
             parent_resource = self.Resources.get(id=resource.parent_resource_id, active=True)
-            print "parent_resource:"
-            print parent_resource
         else:
             parent_resource = None
 

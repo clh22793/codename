@@ -54,13 +54,19 @@ class Swagger:
         paths = {}
 
         for endpoint in endpoints:
+            for tmp in resources:
+                if endpoint.resource_id == tmp.id:
+                    resource = tmp
+
             print "getting path for: "+endpoint.method
             print endpoint
 
             status_code = "201" if endpoint.method == 'post' else '200'
             response_type = "array" if endpoint.collection == True else "object"
-            paths[endpoint.relative_url] = {}
-            paths[endpoint.relative_url]['x-singular'] = resources[0].name
+
+            if endpoint.relative_url not in paths:
+                paths[endpoint.relative_url] = {}
+                paths[endpoint.relative_url]['x-singular'] = resource.name
 
             paths[endpoint.relative_url][endpoint.method] = {}
             paths[endpoint.relative_url][endpoint.method]['description'] = endpoint.description
@@ -72,10 +78,10 @@ class Swagger:
             paths[endpoint.relative_url][endpoint.method]['responses'][status_code]['schema'] = {}
             paths[endpoint.relative_url][endpoint.method]['responses'][status_code]['schema']['type'] = response_type
             paths[endpoint.relative_url][endpoint.method]['responses'][status_code]['schema']['items'] = {}
-            paths[endpoint.relative_url][endpoint.method]['responses'][status_code]['schema']['items']['$ref'] = '#/definitions/'+resources[0].name
+            paths[endpoint.relative_url][endpoint.method]['responses'][status_code]['schema']['items']['$ref'] = '#/definitions/'+resource.name
             paths[endpoint.relative_url][endpoint.method]['security'] = []
 
-            if resources[0].template and resources[0].template.lower() == 'user':
+            if resource.template and resource.template.lower() == 'user':
                 paths[endpoint.relative_url][endpoint.method]['security'].append({"api_key":[]})
             else:
                 paths[endpoint.relative_url][endpoint.method]['security'].append({"oauth2":['*']})
