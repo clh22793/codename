@@ -301,3 +301,20 @@ class Util:
     @staticmethod
     def replace_non_alnum_chars(string, replace_with=''):
         return re.sub(r'[^a-zA-Z0-9]',replace_with, string)
+
+    @staticmethod
+    def get_relative_url(method, resource, collection):
+        if method.lower() == 'get' and collection == True:
+            relative_url = resource.parent+"/{"+resource.parent+"_id}/"+resource.plurality
+        elif method.lower() == 'get':
+            relative_url = resource.plurality+"/{"+resource.name.lower()+"_id}"
+        elif method.lower() == 'post' and resource.parent.lower() == 'none':
+            relative_url = resource.plurality+"/{"+resource.name.lower()+"_id}"
+        elif method.lower() == 'post':
+            relative_url = resource.parent+"/{"+resource.parent+"_id}/"+resource.plurality
+        elif method.lower() == 'put':
+            relative_url = resource.plurality+"/{"+resource.name.lower()+"_id}"
+        else:
+            relative_url = resource.plurality+"/{"+resource.name.lower()+"_id}"
+
+        return relative_url

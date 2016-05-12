@@ -5,6 +5,7 @@ import json,datetime,base64,os
 # internal imports
 import customexception
 from util import Util
+from swagger import Swagger
 from verifyrequest import VerifyRequest
 from payload import UsersPayload
 from payload import OauthPayload
@@ -13,6 +14,7 @@ from payload import VersionPayload
 from payload import ResourcePayload
 from payload import EndpointPayload
 from payload import SwaggerPayload
+from payload import DeploymentPayload
 
 from models import Map
 
@@ -24,6 +26,7 @@ from models import model_client
 from models import model_version
 from models import model_resource
 from models import model_endpoint
+from models import model_deployment
 
 
 class RequestHandler():
@@ -39,6 +42,7 @@ class RequestHandler():
         self.Versions = model_version()
         self.Resources = model_resource()
         self.Endpoints = model_endpoint()
+        self.Deployments = model_deployment()
 
     def process(self, **kwargs):
         self.authorize(kwargs['request'])
@@ -303,19 +307,17 @@ class EndpointHandler(BearerRequestHandler):
         created = datetime.datetime.utcnow()
         active = True
 
+        resource = self.Resources.get(id=resource_id, active=True)
         endpoint = self.Endpoints.get(method=method, resource_id=resource_id, collection=collection, active=True)
 
         if endpoint:
             self.Endpoints.update(id=endpoint.id, active=False)
 
-        #if not endpoint:
-
         code_snippets = Util.get_code_snippets(har_request)
-        endpoint = self.Endpoints.insert(id=Util.generate_id(method), code_snippets=code_snippets, method=method, collection=collection, har_request=har_request, name=name, resource_id=resource_id, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
+        relative_url = Util.get_relative_url(method, resource, collection)
+        endpoint = self.Endpoints.insert(id=Util.generate_id(method), version_id=resource.version_id, relative_url=relative_url, code_snippets=code_snippets, method=method, collection=collection, har_request=har_request, name=name, resource_id=resource_id, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
 
         response = make_response(EndpointPayload(endpoint).getPayload(), 201)
-        #else:
-        #    raise customexception.ResourceException(customexception.resource_already_exists)
 
         return response
 
@@ -335,28 +337,48 @@ class EndpointHandler(BearerRequestHandler):
 
         return response
 
-    # DEPRECATED - DO I NEED THIS?!?!?!?!?!
-    def put(self, **kwargs):
-        resource_id = kwargs['resource_id'] if 'resource_id' in kwargs else None
+class DeploymentHandler(BearerRequestHandler):
+    def post(self, **kwargs):
+        request = kwargs['request']
+        version_id = kwargs['version_id'] if 'version_id' in kwargs else None
 
         data = json.loads(request.get_data())
-        name = data['name']
-        plurality = data['plurality']
-        parent = data['parent']
-        parameters = data['parameters']
 
-        resource = self.Resources.update(id=resource_id, name=name, plurality=plurality, parent=parent, parameters=parameters)
+        environment = data['environment']
+        created = datetime.datetime.utcnow()
+        active = True
 
-        if resource:
-            resource = self.Resources.get(id=resource_id)
+        # update all existing deployments to active=False
+        deployments = self.Deployments.fetch(version_id=version_id)
+        for deployment in deployments:
+            self.Deployments.update(id=deployment['id'], active=False)
 
-            response = make_response(ResourcePayload(resource).getPayload(), 200)
-            print "response==="
-            print response
+        # insert
+        resources = self.Resources.fetch(version_id=version_id, active=True)
+        tmp_resources = []
+        for resource in resources:
+            tmp_resources.append(Map(resource))
+        resources = tmp_resources
 
+        endpoints = self.Endpoints.fetch(version_id=version_id, active=True)
+        tmp_endpoints = []
+        for endpoint in endpoints:
+            tmp_endpoints.append(Map(endpoint))
+        endpoints = tmp_endpoints
 
-            return response
+        version = self.Versions.get(id=version_id, active=True)
 
+        print "ENDPOINTS===="
+        print endpoints
+
+        api = self.Apis.get(id=version.api_id, active=True)
+
+        swagger_object = Swagger.generate(api, version, resources, endpoints, environment)
+        deployment = self.Deployments.insert(id=Util.generate_id(version_id), version_id=version_id, swagger=swagger_object, environment=environment, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
+
+        response = make_response(DeploymentPayload(deployment).getPayload(), 201)
+
+        return response
 
 class SwaggerHandler(BearerRequestHandler):
     ALLOWED_EXTENSIONS = set(['json'])

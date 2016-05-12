@@ -188,3 +188,7 @@ class model_resource(model_base):
 class model_endpoint(model_base):
     def set_table(self):
         self.table = 'endpoints'
+
+class model_deployment(model_base):
+    def set_table(self):
+        self.table = 'deployments'

@@ -78,6 +78,11 @@ def endpoints(resource_id):
     endpointhandler = requesthandlers.EndpointHandler()
     return endpointhandler.process(request=request, resource_id=resource_id)
 
+@app.route('/versions/<version_id>/deployments', methods=['POST', 'GET'])
+def deployments(version_id):
+    deploymenthandler = requesthandlers.DeploymentHandler()
+    return deploymenthandler.process(request=request, version_id=version_id)
+
 @app.route('/batch', methods=['POST'])
 def batch():
     datas = json.loads(request.get_data())

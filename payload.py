@@ -86,6 +86,10 @@ class AppClientPayload(Payload):
     def setPayload(self, model):
         self.payload = {'meta':{'type':'appclient'}, 'content':{"id":model.appclient_id, "client_id":model.client_id, "client_secret":model.client_secret}}
 
+class DeploymentPayload(Payload):
+    def setPayload(self, model):
+        self.payload = {'meta':{'type':'deployment'}, 'content':{"id":model.id}}
+
 class AppUserPayload(ParameterPayload):
     def setParameters(self, name, parameters):
         content = {}
