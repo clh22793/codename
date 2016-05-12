@@ -130,9 +130,6 @@ class OauthHandler(BasicRequestHandler):
 
             oauth = self.Oauths.insert(id=Util.generate_id(access_token), access_token=access_token, refresh_token=refresh_token, created=created, active=active, user_id=user_id, client_id=self.client.id)
 
-            print "insert OAUTH===="
-            print oauth
-
             response = make_response(OauthPayload(oauth).getPayload(), 201)
         else:
             raise customexception.AuthException(customexception.invalid_user_creds)
@@ -226,7 +223,7 @@ class ResourceHandler(BearerRequestHandler):
         data = json.loads(request.get_data())
         name = data['name']
         plurality = data['plurality']
-        parent = data['parent']
+        parent_resource_id = data['parent_resource_id']
         parameters = data['parameters']
         created = datetime.datetime.utcnow()
         resource_id = Util.generate_id(name)
@@ -234,7 +231,7 @@ class ResourceHandler(BearerRequestHandler):
 
         resource = self.Resources.get(name=name, version_id=version_id, active=True)
         if not resource:
-            resource = self.Resources.insert(id=resource_id, name=name, version_id=version_id, plurality=plurality, parent=parent, parameters=parameters, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
+            resource = self.Resources.insert(id=resource_id, name=name, version_id=version_id, plurality=plurality, parent_resource_id=parent_resource_id, parameters=parameters, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
 
             # Now, create endpoints
             '''
@@ -278,10 +275,10 @@ class ResourceHandler(BearerRequestHandler):
         data = json.loads(request.get_data())
         name = data['name']
         plurality = data['plurality']
-        parent = data['parent']
+        parent_resource_id = data['parent_resource_id']
         parameters = data['parameters']
 
-        resource = self.Resources.update(id=resource_id, name=name, plurality=plurality, parent=parent, parameters=parameters)
+        resource = self.Resources.update(id=resource_id, name=name, plurality=plurality, parent_resource_id=parent_resource_id, parameters=parameters)
 
         if resource:
             resource = self.Resources.get(id=resource_id)
@@ -297,10 +294,7 @@ class EndpointHandler(BearerRequestHandler):
 
         data = json.loads(request.get_data())
 
-        print "ENDPOINT DATA==="
-        print data
-
-        har_request = data['har_request']
+        #har_request = data['har_request'] HACK leftover
         method = data['method']
         name = data['name']
         collection = data['collection'] if 'collection' in data else False
@@ -313,8 +307,19 @@ class EndpointHandler(BearerRequestHandler):
         if endpoint:
             self.Endpoints.update(id=endpoint.id, active=False)
 
+        print "parent resource id:"
+        print resource.parent_resource_id
+
+        if resource.parent_resource_id:
+            parent_resource = self.Resources.get(id=resource.parent_resource_id, active=True)
+            print "parent_resource:"
+            print parent_resource
+        else:
+            parent_resource = None
+
+        relative_url = Util.get_relative_url(method, resource, collection, parent_resource)
+        har_request = Util.generate_har_request(method, resource, relative_url)
         code_snippets = Util.get_code_snippets(har_request)
-        relative_url = Util.get_relative_url(method, resource, collection)
         endpoint = self.Endpoints.insert(id=Util.generate_id(method), version_id=resource.version_id, relative_url=relative_url, code_snippets=code_snippets, method=method, collection=collection, har_request=har_request, name=name, resource_id=resource_id, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
 
         response = make_response(EndpointPayload(endpoint).getPayload(), 201)
@@ -367,9 +372,6 @@ class DeploymentHandler(BearerRequestHandler):
         endpoints = tmp_endpoints
 
         version = self.Versions.get(id=version_id, active=True)
-
-        print "ENDPOINTS===="
-        print endpoints
 
         api = self.Apis.get(id=version.api_id, active=True)
 

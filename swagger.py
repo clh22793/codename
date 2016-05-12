@@ -2,6 +2,7 @@ from models import model_api
 from models import model_version
 from models import model_resource
 from models import model_endpoint
+import json
 
 class Swagger:
     @staticmethod
@@ -19,7 +20,7 @@ class Swagger:
         #swagger_object['consumes'] = None
         #swagger_object['produces'] = None
 
-        return swagger_object
+        return json.dumps(swagger_object)
 
     @staticmethod
     def get_swagger_version():
@@ -53,32 +54,31 @@ class Swagger:
         paths = {}
 
         for endpoint in endpoints:
-            print "get_paths.endpoint"
+            print "getting path for: "+endpoint.method
             print endpoint
-
 
             status_code = "201" if endpoint.method == 'post' else '200'
             response_type = "array" if endpoint.collection == True else "object"
-            paths[endpoint.har_request.relative_url] = {}
-            paths[endpoint.har_request.relative_url]['x-singular'] = resources[0].name
+            paths[endpoint.relative_url] = {}
+            paths[endpoint.relative_url]['x-singular'] = resources[0].name
 
-            paths[endpoint.har_request.relative_url][endpoint.method] = {}
-            paths[endpoint.har_request.relative_url][endpoint.method]['description'] = endpoint.description
-            paths[endpoint.har_request.relative_url][endpoint.method]['produces'] = endpoint.produces
-            paths[endpoint.har_request.relative_url][endpoint.method]['consumes'] = endpoint.consumes
-            paths[endpoint.har_request.relative_url][endpoint.method]['responses'] = {}
-            paths[endpoint.har_request.relative_url][endpoint.method]['responses'][status_code] = {}
-            paths[endpoint.har_request.relative_url][endpoint.method]['responses'][status_code]['description'] = endpoint.name
-            paths[endpoint.har_request.relative_url][endpoint.method]['responses'][status_code]['schema'] = {}
-            paths[endpoint.har_request.relative_url][endpoint.method]['responses'][status_code]['schema']['type'] = response_type
-            paths[endpoint.har_request.relative_url][endpoint.method]['responses'][status_code]['schema']['items'] = {}
-            paths[endpoint.har_request.relative_url][endpoint.method]['responses'][status_code]['schema']['items']['$ref'] = '#/definitions/'+resources[0].name
-            paths[endpoint.har_request.relative_url][endpoint.method]['security'] = []
+            paths[endpoint.relative_url][endpoint.method] = {}
+            paths[endpoint.relative_url][endpoint.method]['description'] = endpoint.description
+            paths[endpoint.relative_url][endpoint.method]['produces'] = endpoint.produces
+            paths[endpoint.relative_url][endpoint.method]['consumes'] = endpoint.consumes
+            paths[endpoint.relative_url][endpoint.method]['responses'] = {}
+            paths[endpoint.relative_url][endpoint.method]['responses'][status_code] = {}
+            paths[endpoint.relative_url][endpoint.method]['responses'][status_code]['description'] = endpoint.name
+            paths[endpoint.relative_url][endpoint.method]['responses'][status_code]['schema'] = {}
+            paths[endpoint.relative_url][endpoint.method]['responses'][status_code]['schema']['type'] = response_type
+            paths[endpoint.relative_url][endpoint.method]['responses'][status_code]['schema']['items'] = {}
+            paths[endpoint.relative_url][endpoint.method]['responses'][status_code]['schema']['items']['$ref'] = '#/definitions/'+resources[0].name
+            paths[endpoint.relative_url][endpoint.method]['security'] = []
 
             if resources[0].template and resources[0].template.lower() == 'user':
-                paths[endpoint.har_request.relative_url][endpoint.method]['security'].append({"api_key":[]})
+                paths[endpoint.relative_url][endpoint.method]['security'].append({"api_key":[]})
             else:
-                paths[endpoint.har_request.relative_url][endpoint.method]['security'].append({"oauth2":['*']})
+                paths[endpoint.relative_url][endpoint.method]['security'].append({"oauth2":['*']})
 
         '''
         for resource in resources:
@@ -118,26 +118,24 @@ class Swagger:
     @staticmethod
     def get_object_definitions(resources):
         definitions = {}
-        required_parameters = []
 
         for resource in resources:
+            required_parameters = []
             definitions[resource.name] = {}
             definitions[resource.name]['type'] = "object"
             definitions[resource.name]['properties'] = {}
 
-            print "RESOURCE==="
-            print resource
-
             for parameter in resource.parameters:
-                definitions[resource.name]['properties'][resource.name] = {}
-                definitions[resource.name]['properties'][resource.name]["type"] = parameter['type']
-                definitions[resource.name]['properties'][resource.name]["description"] = parameter['description']
-                definitions[resource.name]['properties'][resource.name]["readOnly"] = parameter['read_only'].lower()
+                definitions[resource.name]['properties'][parameter['name']] = {}
+                definitions[resource.name]['properties'][parameter['name']]["type"] = parameter['type']
+                definitions[resource.name]['properties'][parameter['name']]["description"] = parameter['description']
+                definitions[resource.name]['properties'][parameter['name']]["readOnly"] = parameter['read_only']
 
-                if parameter['required'] == True:
-                    required_parameters.append(parameter.name)
+                if parameter['required']:
+                    required_parameters.append(parameter['name'])
 
-            definitions[resource.name]['required'] = required_parameters
+            if required_parameters:
+                definitions[resource.name]['required'] = required_parameters
 
         return definitions
 

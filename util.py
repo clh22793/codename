@@ -272,17 +272,8 @@ class Util:
 
     @staticmethod
     def get_code_snippets(har_request):
-        '''
-        response = urlfetch.fetch('http://45.55.47.103/har',
-                payload=json.encode(har_request),
-                method=urlfetch.POST)
-        '''
-        print 'get code for har_request:'
-        print har_request
-
         response = requests.post('http://45.55.47.103/har', json.dumps(har_request))
 
-        print response.json()
         return response.json()
 
     @staticmethod
@@ -303,18 +294,45 @@ class Util:
         return re.sub(r'[^a-zA-Z0-9]',replace_with, string)
 
     @staticmethod
-    def get_relative_url(method, resource, collection):
-        if method.lower() == 'get' and collection == True:
-            relative_url = resource.parent+"/{"+resource.parent+"_id}/"+resource.plurality
+    def get_relative_url(method, resource, collection, parent_resource=None):
+        print "get_relative_url:"
+        print method
+        print collection
+
+        if method.lower() == 'get' and collection == True and parent_resource:
+            relative_url = parent_resource.plurality+"/{"+parent_resource.name+"_id}/"+resource.plurality
+        elif method.lower() == 'get' and collection == True:
+            relative_url = resource.plurality
         elif method.lower() == 'get':
             relative_url = resource.plurality+"/{"+resource.name.lower()+"_id}"
-        elif method.lower() == 'post' and resource.parent.lower() == 'none':
-            relative_url = resource.plurality+"/{"+resource.name.lower()+"_id}"
+        elif method.lower() == 'post' and parent_resource is None:
+            relative_url = resource.plurality
         elif method.lower() == 'post':
-            relative_url = resource.parent+"/{"+resource.parent+"_id}/"+resource.plurality
+            relative_url = parent_resource.plurality+"/{"+parent_resource.name+"_id}/"+resource.plurality
         elif method.lower() == 'put':
             relative_url = resource.plurality+"/{"+resource.name.lower()+"_id}"
         else:
             relative_url = resource.plurality+"/{"+resource.name.lower()+"_id}"
 
         return relative_url
+
+    @staticmethod
+    def generate_har_request(method, resource, relative_url):
+        base_url = "http://sandbox.magicstack.io/"
+        headers = []
+        headers.append({"name":"Authorization", "value":"Bearer [ACCESS_TOKEN]"})
+
+        queryString = []
+        postData = {"mimeType":"application/json", "params":[]}
+
+        if method.lower() == 'post' or method.lower() == 'put':
+            for parameter in resource.parameters:
+                postData['params'].append({"name":parameter['name'], "value":"test value"})
+
+            headers.append({"name":"Content-Type", "value":"application/json"})
+
+        url = base_url + relative_url
+
+        har_request = {"method":method, "url":url, "headers":headers, "queryString":queryString, "postData":postData}
+
+        return har_request
