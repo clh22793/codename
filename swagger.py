@@ -2,7 +2,7 @@ from models import model_api
 from models import model_version
 from models import model_resource
 from models import model_endpoint
-import json
+import json, re
 
 class Swagger:
     @staticmethod
@@ -79,6 +79,32 @@ class Swagger:
             paths[endpoint.relative_url.lower()][endpoint.method]['responses'][status_code]['schema']['type'] = response_type
             paths[endpoint.relative_url.lower()][endpoint.method]['responses'][status_code]['schema']['items'] = {}
             paths[endpoint.relative_url.lower()][endpoint.method]['responses'][status_code]['schema']['items']['$ref'] = '#/definitions/'+resource.name
+            paths[endpoint.relative_url.lower()][endpoint.method]['parameters'] = []
+
+            if endpoint.method == 'post' or endpoint.method == 'put':
+                paths[endpoint.relative_url.lower()][endpoint.method]['parameters'].append({"in":"body", "name":"body", "description":"payload", "required":True, "schema":{'$ref':'#/definitions/'+resource.name}})
+
+            obj = re.search(r'\{[a-zA-Z_]+\}', endpoint.relative_url.lower())
+
+            if obj:
+                path_var = obj.group()
+
+                tmp = path_var.replace('{', '')
+                name = tmp.replace('}', '')
+                paths[endpoint.relative_url.lower()][endpoint.method]['parameters'].append({"in":"path", "name":name, "description":"path parameter", "required":True, "type":"string"})
+
+            '''
+            "parameters": [
+                    {
+                        "in": "path",
+                        "name": "item_id",
+                        "description": "item parameters",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            '''
+
             paths[endpoint.relative_url.lower()][endpoint.method]['security'] = []
 
             if resource.template and resource.template.lower() == 'user':

@@ -298,16 +298,23 @@ class EndpointHandler(BearerRequestHandler):
         if endpoint:
             self.Endpoints.update(id=endpoint.id, active=False)
 
-        if resource.parent_resource_id:
-            parent_resource = self.Resources.get(id=resource.parent_resource_id, active=True)
-        else:
-            parent_resource = None
-
+        parent_resource = self.Resources.get(id=resource.parent_resource_id, active=True) if resource.parent_resource_id else None
         relative_url = Util.get_relative_url(method, resource, collection, parent_resource)
         har_request = Util.generate_har_request(method, resource, relative_url)
         code_snippets = Util.get_code_snippets(har_request)
-        endpoint = self.Endpoints.insert(id=Util.generate_id(method), version_id=resource.version_id, relative_url=relative_url, code_snippets=code_snippets, method=method, collection=collection, har_request=har_request, name=name, resource_id=resource_id, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
 
+        consumes = []
+        produces = []
+        if method.lower() == 'post' or method.lower() == 'put':
+            consumes.append('application/json')
+            produces.append('application/json')
+        elif method.lower() == 'get':
+            produces.append('application/json')
+
+        endpoint = self.Endpoints.insert(id=Util.generate_id(method), version_id=resource.version_id, relative_url=relative_url,
+                                         code_snippets=code_snippets, method=method, collection=collection, har_request=har_request,
+                                         name=name, resource_id=resource_id, created=created, active=active, user_id=self.oauth.user_id,
+                                         client_id=self.oauth.client_id, produces=produces, consumes=consumes)
         response = make_response(EndpointPayload(endpoint).getPayload(), 201)
 
         return response
