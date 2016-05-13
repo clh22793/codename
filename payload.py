@@ -69,7 +69,7 @@ class ResourcePayload(Payload):
     def setPayload(self, model):
         self.payload = {'meta':{'type':'resource', 'created':str(model.created)},
                         'content':{"id" :model.id, "name":model.name, "version_id":model.version_id,
-                        "description":model.description, "plurality":model.plurality, "parent":model.parent,
+                        "description":model.description, "plurality":model.plurality, "parent_resource_id":model.parent_resource_id,
                         "parameters":model.parameters}}
 
 class ResourceEndpointPayload(Payload):

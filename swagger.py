@@ -65,59 +65,29 @@ class Swagger:
             response_type = "array" if endpoint.collection == True else "object"
 
             if endpoint.relative_url not in paths:
-                paths[endpoint.relative_url] = {}
-                paths[endpoint.relative_url]['x-singular'] = resource.name
+                paths[endpoint.relative_url.lower()] = {}
+                paths[endpoint.relative_url.lower()]['x-singular'] = resource.name.lower()
 
-            paths[endpoint.relative_url][endpoint.method] = {}
-            paths[endpoint.relative_url][endpoint.method]['description'] = endpoint.description
-            paths[endpoint.relative_url][endpoint.method]['produces'] = endpoint.produces
-            paths[endpoint.relative_url][endpoint.method]['consumes'] = endpoint.consumes
-            paths[endpoint.relative_url][endpoint.method]['responses'] = {}
-            paths[endpoint.relative_url][endpoint.method]['responses'][status_code] = {}
-            paths[endpoint.relative_url][endpoint.method]['responses'][status_code]['description'] = endpoint.name
-            paths[endpoint.relative_url][endpoint.method]['responses'][status_code]['schema'] = {}
-            paths[endpoint.relative_url][endpoint.method]['responses'][status_code]['schema']['type'] = response_type
-            paths[endpoint.relative_url][endpoint.method]['responses'][status_code]['schema']['items'] = {}
-            paths[endpoint.relative_url][endpoint.method]['responses'][status_code]['schema']['items']['$ref'] = '#/definitions/'+resource.name
-            paths[endpoint.relative_url][endpoint.method]['security'] = []
+            paths[endpoint.relative_url.lower()][endpoint.method] = {}
+            paths[endpoint.relative_url.lower()][endpoint.method]['description'] = endpoint.description
+            paths[endpoint.relative_url.lower()][endpoint.method]['produces'] = endpoint.produces
+            paths[endpoint.relative_url.lower()][endpoint.method]['consumes'] = endpoint.consumes
+            paths[endpoint.relative_url.lower()][endpoint.method]['responses'] = {}
+            paths[endpoint.relative_url.lower()][endpoint.method]['responses'][status_code] = {}
+            paths[endpoint.relative_url.lower()][endpoint.method]['responses'][status_code]['description'] = endpoint.name
+            paths[endpoint.relative_url.lower()][endpoint.method]['responses'][status_code]['schema'] = {}
+            paths[endpoint.relative_url.lower()][endpoint.method]['responses'][status_code]['schema']['type'] = response_type
+            paths[endpoint.relative_url.lower()][endpoint.method]['responses'][status_code]['schema']['items'] = {}
+            paths[endpoint.relative_url.lower()][endpoint.method]['responses'][status_code]['schema']['items']['$ref'] = '#/definitions/'+resource.name
+            paths[endpoint.relative_url.lower()][endpoint.method]['security'] = []
 
             if resource.template and resource.template.lower() == 'user':
-                paths[endpoint.relative_url][endpoint.method]['security'].append({"api_key":[]})
+                paths[endpoint.relative_url.lower()][endpoint.method]['security'].append({"api_key":[]})
             else:
-                paths[endpoint.relative_url][endpoint.method]['security'].append({"oauth2":['*']})
+                paths[endpoint.relative_url.lower()][endpoint.method]['security'].append({"oauth2":['*']})
 
-        '''
-        for resource in resources:
-            paths[resource.plurality] = {}
-            paths[resource.plurality]['x-singular'] = resource.name
-
-            for endpoint in endpoints:
-                if endpoint.resource_id == resource.id:
-                    status_code = "201" if endpoint.method == 'post' else '200'
-                    response_type = "array" if endpoint.collection == True else "object"
-
-                    paths[resource.plurality][endpoint.method] = {}
-                    paths[resource.plurality][endpoint.method]['description'] = endpoint.description
-                    paths[resource.plurality][endpoint.method]['produces'] = endpoint.produces
-                    paths[resource.plurality][endpoint.method]['consumes'] = endpoint.consumes
-                    paths[resource.plurality][endpoint.method]['responses'] = {}
-                    paths[resource.plurality][endpoint.method]['responses'][status_code] = {}
-                    paths[resource.plurality][endpoint.method]['responses'][status_code]['description'] = endpoint.name
-                    paths[resource.plurality][endpoint.method]['responses'][status_code]['schema'] = {}
-                    paths[resource.plurality][endpoint.method]['responses'][status_code]['schema']['type'] = response_type
-                    paths[resource.plurality][endpoint.method]['responses'][status_code]['schema']['items'] = {}
-                    paths[resource.plurality][endpoint.method]['responses'][status_code]['schema']['items']['$ref'] = '#/definitions/'+resource.name
-                    paths[resource.plurality][endpoint.method]['security'] = []
-
-                    if resource.template.lower() == 'user':
-                        paths[resource.plurality][endpoint.method]['security'].append({"api_key":[]})
-                    else:
-                        paths[resource.plurality][endpoint.method]['security'].append({"oauth2":['*']})
-
-
-                    # this is where i'll handle error payloads
-                    #paths[resource.plurality][endpoint.method]['responses']['default'] = {}
-        '''
+            # this is where i'll handle error payloads
+            #paths[resource.plurality][endpoint.method]['responses']['default'] = {}
 
         return paths
 
