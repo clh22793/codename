@@ -184,6 +184,7 @@ class Util:
 
         return None
 
+    # DEPRECATED
     @staticmethod
     def get_har_request(params, http_method, base_url=None):
         request = {}
@@ -319,16 +320,23 @@ class Util:
         headers.append({"name":"Authorization", "value":"Bearer [ACCESS_TOKEN]"})
 
         queryString = []
-        postData = {"mimeType":"application/json", "params":[]}
+        postData = {"mimeType":"application/json", "params":[], "text":""}
 
         if method.lower() == 'post' or method.lower() == 'put':
+            data_json = {}
             for parameter in resource.parameters:
-                postData['params'].append({"name":parameter['name'], "value":"test value"})
+                data_json[parameter['name']] = 'test value'
+                #postData['params'].append({"name":parameter['name'], "value":"test value"})
+
+            postData['text'] = json.dumps(data_json)
 
             headers.append({"name":"Content-Type", "value":"application/json"})
 
         url = base_url + relative_url
 
         har_request = {"method":method, "url":url, "headers":headers, "queryString":queryString, "postData":postData}
+
+        print "generated har request:"
+        print har_request
 
         return har_request
