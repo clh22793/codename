@@ -256,7 +256,15 @@ class ResourceHandler(BearerRequestHandler):
             response = make_response(json.dumps(resources_payload), 200)
 
         else: # resource_id
+            print "user_id:"
+            print self.oauth.user_id
+            print "resource_id:"
+            print resource_id
+
             resource = self.Resources.get(user_id=self.oauth.user_id, id=resource_id, active=True)
+
+            print resource
+
             response = make_response(ResourcePayload(resource).getPayload(), 200)
 
         return response

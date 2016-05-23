@@ -87,6 +87,9 @@ class model_base():
 
         entity = model_base.db[self.table].find_one(query)
 
+        print query
+        print entity
+
         if entity:
             return Map(entity)
         else:
