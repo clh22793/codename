@@ -104,8 +104,8 @@ class UserHandler(BasicRequestHandler):
         user = self.Users.get(username=username, active=True)
         if not user:
             user = self.Users.insert(username=username, id=user_id, password=password, active=active, created=created)
-
             response = make_response(UsersPayload(user).getPayload(), 201)
+
             return response
 
         else:
@@ -185,11 +185,20 @@ class VersionHandler(BearerRequestHandler):
         name = data['name']
         created = datetime.datetime.utcnow()
         active = True
+        version_id = Util.generate_id(name+api_id)
         #id = Util.generate_id(name+self.oauth.user_id)
 
         version = self.Versions.get(name=name, api_id=api_id, active=True)
         if not version:
-            version = self.Versions.insert(id=Util.generate_id(name+api_id), name=name, api_id=api_id, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
+            version = self.Versions.insert(id=version_id, name=name, api_id=api_id, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
+
+            # create default user resource
+            parameters = []
+            parameters.append({"name":"username", "description":"email address", "read_only":False, "required":True, "type":"String"})
+            parameters.append({"name":"password", "description":"user password", "read_only":False, "required":True, "type":"String"})
+
+            resource = self.Resources.insert(id=Util.generate_id('user'), template='user', name='User', version_id=version_id, plurality='Users', parent_resource_id='None', parameters=parameters, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
+            # end default user resource
 
             response = make_response(VersionPayload(version).getPayload(), 201)
 
@@ -227,11 +236,12 @@ class ResourceHandler(BearerRequestHandler):
         parameters = data['parameters']
         created = datetime.datetime.utcnow()
         resource_id = Util.generate_id(name)
+        template = data['template']
         active = True
 
         resource = self.Resources.get(name=name, version_id=version_id, active=True)
         if not resource:
-            resource = self.Resources.insert(id=resource_id, name=name, version_id=version_id, plurality=plurality, parent_resource_id=parent_resource_id, parameters=parameters, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
+            resource = self.Resources.insert(id=resource_id, template=template, name=name, version_id=version_id, plurality=plurality, parent_resource_id=parent_resource_id, parameters=parameters, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
 
             response = make_response(ResourcePayload(resource).getPayload(), 201)
 
@@ -359,7 +369,7 @@ class DeploymentHandler(BearerRequestHandler):
         for deployment in deployments:
             self.Deployments.update(id=deployment['id'], active=False)
 
-        # insert
+        # insert deployment object
         resources = self.Resources.fetch(version_id=version_id, active=True)
         tmp_resources = []
         for resource in resources:
