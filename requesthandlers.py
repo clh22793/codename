@@ -121,12 +121,17 @@ class OauthHandler(BasicRequestHandler):
         user = self.Users.get(username=username, password=Util.generate_password(password))
 
         if user:
+            print "found user"
+            print user
+            print user.id
+
+
             # create token
             access_token = Util.generate_token('access_token'+username+password)
             refresh_token = Util.generate_token('access_token'+username+password)
             created = datetime.datetime.utcnow()
             active = True
-            user_id = user.user_id
+            user_id = user.id
 
             oauth = self.Oauths.insert(id=Util.generate_id(access_token), access_token=access_token, refresh_token=refresh_token, created=created, active=active, user_id=user_id, client_id=self.client.id)
 
