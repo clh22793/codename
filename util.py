@@ -296,6 +296,7 @@ class Util:
 
     @staticmethod
     def get_relative_url(method, resource, collection, parent_resource=None):
+        '''
         if method.lower() == 'get' and collection == True and parent_resource:
             relative_url = parent_resource.plurality+"/{"+parent_resource.name+"_id}/"+resource.plurality
         elif method.lower() == 'get' and collection == True:
@@ -310,14 +311,33 @@ class Util:
             relative_url = resource.plurality+"/{"+resource.name.lower()+"_id}"
         else:
             relative_url = resource.plurality+"/{"+resource.name.lower()+"_id}"
+        '''
+
+        if method.lower() == 'get' and collection == True and parent_resource:
+            relative_url = parent_resource.plurality+"/:"+parent_resource.name.upper()+"_ID/"+resource.plurality
+        elif method.lower() == 'get' and collection == True:
+            relative_url = resource.plurality
+        elif method.lower() == 'get':
+            relative_url = resource.plurality+"/:"+resource.name.upper()+"_ID"
+        elif method.lower() == 'post' and parent_resource is None:
+            relative_url = resource.plurality
+        elif method.lower() == 'post':
+            relative_url = parent_resource.plurality+"/:"+parent_resource.name.upper()+"_ID/"+resource.plurality
+        elif method.lower() == 'put':
+            relative_url = resource.plurality+"/:"+resource.name.upper()+"_ID"
+        else:
+            relative_url = resource.plurality+"/:"+resource.name.upper()+"_ID"
 
         return relative_url.lower()
 
     @staticmethod
-    def generate_har_request(method, resource, relative_url):
-        base_url = "http://sandbox.magicstack.io/"
+    def generate_har_request(method, resource, relative_url, base_url="http://sandbox.magicstack.io/"):
         headers = []
-        headers.append({"name":"Authorization", "value":"Bearer [ACCESS_TOKEN]"})
+
+        if resource.auth_type == 'basic':
+            headers.append({"name":"Authorization", "value":"Basic [MAGICSTACK_TOKEN]"})
+        else: # == 'oauth2'
+            headers.append({"name":"Authorization", "value":"Bearer [ACCESS_TOKEN]"})
 
         queryString = []
         postData = {"mimeType":"application/json", "params":[], "text":""}
@@ -340,3 +360,7 @@ class Util:
         print har_request
 
         return har_request
+
+    @staticmethod
+    def get_base_url():
+        return 'http://sandbox.magicstack.io/'

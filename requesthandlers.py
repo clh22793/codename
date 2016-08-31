@@ -121,11 +121,6 @@ class OauthHandler(BasicRequestHandler):
         user = self.Users.get(username=username, password=Util.generate_password(password))
 
         if user:
-            print "found user"
-            print user
-            print user.id
-
-
             # create token
             access_token = Util.generate_token('access_token'+username+password)
             refresh_token = Util.generate_token('access_token'+username+password)
@@ -202,7 +197,7 @@ class VersionHandler(BearerRequestHandler):
             parameters.append({"name":"username", "description":"email address", "read_only":False, "required":True, "type":"String"})
             parameters.append({"name":"password", "description":"user password", "read_only":False, "required":True, "type":"String"})
 
-            resource = self.Resources.insert(id=Util.generate_id('user'), template='user', name='User', version_id=version_id, plurality='Users', parent_resource_id='None', parameters=parameters, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
+            resource = self.Resources.insert(id=Util.generate_id('user'), template='user', name='User', auth_type='basic', version_id=version_id, plurality='Users', parent_resource_id='None', parameters=parameters, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
             # end default user resource
 
             response = make_response(VersionPayload(version).getPayload(), 201)
@@ -241,12 +236,14 @@ class ResourceHandler(BearerRequestHandler):
         parameters = data['parameters']
         created = datetime.datetime.utcnow()
         resource_id = Util.generate_id(name)
-        template = data['template']
+        template = data['template'].lower()
+        auth_type = 'oauth2'
+
         active = True
 
         resource = self.Resources.get(name=name, version_id=version_id, active=True)
         if not resource:
-            resource = self.Resources.insert(id=resource_id, template=template, name=name, version_id=version_id, plurality=plurality, parent_resource_id=parent_resource_id, parameters=parameters, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
+            resource = self.Resources.insert(id=resource_id, template=template, auth_type=auth_type, name=name, version_id=version_id, plurality=plurality, parent_resource_id=parent_resource_id, parameters=parameters, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
 
             response = make_response(ResourcePayload(resource).getPayload(), 201)
 
@@ -318,12 +315,16 @@ class EndpointHandler(BearerRequestHandler):
         resource = self.Resources.get(id=resource_id, active=True)
         endpoint = self.Endpoints.get(method=method, resource_id=resource_id, collection=collection, active=True)
 
+
+        print "endpoint"
+        print resource
+
         if endpoint:
             self.Endpoints.update(id=endpoint.id, active=False)
 
         parent_resource = self.Resources.get(id=resource.parent_resource_id, active=True) if resource.parent_resource_id else None
         relative_url = Util.get_relative_url(method, resource, collection, parent_resource)
-        har_request = Util.generate_har_request(method, resource, relative_url)
+        har_request = Util.generate_har_request(method, resource, relative_url, Util.get_base_url())
         code_snippets = Util.get_code_snippets(har_request)
 
         consumes = []
