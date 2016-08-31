@@ -27,6 +27,7 @@ from models import model_version
 from models import model_resource
 from models import model_endpoint
 from models import model_deployment
+from models import model_api_keys
 
 
 class RequestHandler():
@@ -43,6 +44,7 @@ class RequestHandler():
         self.Resources = model_resource()
         self.Endpoints = model_endpoint()
         self.Deployments = model_deployment()
+        self.Api_keys = model_api_keys()
 
     def process(self, **kwargs):
         self.authorize(kwargs['request'])
@@ -147,7 +149,15 @@ class ApiHandler(BearerRequestHandler):
 
         api = self.Apis.get(title=title, active=True)
         if not api:
-            api = self.Apis.insert(id=Util.generate_id(title+self.oauth.user_id), title=title, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
+            # create api
+            api_id = Util.generate_id(title+self.oauth.user_id)
+            api = self.Apis.insert(id=api_id, title=title, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
+
+            # create 1st api key
+            client_id = Util.generate_id('client_id'+title)
+            client_secret = Util.generate_id('client_secret'+title)
+            basic_key = base64.b64encode(client_id+":"+client_secret)
+            api_key = self.Api_keys.insert(id=Util.generate_id(client_id+client_secret), user_id=self.oauth.user_id, api_id=api_id, active=active, client_id=client_id, client_secret=client_secret, basic_key=basic_key, created=created)
 
             response = make_response(ApiPayload(api).getPayload(), 201)
         else:
@@ -194,8 +204,8 @@ class VersionHandler(BearerRequestHandler):
 
             # create default user resource
             parameters = []
-            parameters.append({"name":"username", "description":"email address", "read_only":False, "required":True, "type":"String"})
-            parameters.append({"name":"password", "description":"user password", "read_only":False, "required":True, "type":"String"})
+            parameters.append({"name":"username", "description":"email address", "read_only":False, "required":True, "type":"String", "fixed":True})
+            parameters.append({"name":"password", "description":"user password", "read_only":False, "required":True, "type":"String", "fixed":True})
 
             resource = self.Resources.insert(id=Util.generate_id('user'), template='user', name='User', auth_type='basic', version_id=version_id, plurality='Users', parent_resource_id='None', parameters=parameters, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
             # end default user resource
@@ -238,7 +248,6 @@ class ResourceHandler(BearerRequestHandler):
         resource_id = Util.generate_id(name)
         template = data['template'].lower()
         auth_type = 'oauth2'
-
         active = True
 
         resource = self.Resources.get(name=name, version_id=version_id, active=True)
@@ -314,7 +323,6 @@ class EndpointHandler(BearerRequestHandler):
 
         resource = self.Resources.get(id=resource_id, active=True)
         endpoint = self.Endpoints.get(method=method, resource_id=resource_id, collection=collection, active=True)
-
 
         print "endpoint"
         print resource

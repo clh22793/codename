@@ -331,7 +331,7 @@ class Util:
         return relative_url.lower()
 
     @staticmethod
-    def generate_har_request(method, resource, relative_url, base_url="http://sandbox.magicstack.io/"):
+    def generate_har_request(method, resource, relative_url, base_url="http://prod.magicstack.io/"):
         headers = []
 
         if resource.auth_type == 'basic':
