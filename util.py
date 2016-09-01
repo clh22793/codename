@@ -345,8 +345,9 @@ class Util:
         if method.lower() == 'post' or method.lower() == 'put':
             data_json = {}
             for parameter in resource.parameters:
-                data_json[parameter['name']] = 'test value'
-                #postData['params'].append({"name":parameter['name'], "value":"test value"})
+                if parameter['read_only'] == False:
+                    data_json[parameter['name']] = 'test value'
+                    #postData['params'].append({"name":parameter['name'], "value":"test value"})
 
             postData['text'] = json.dumps(data_json)
 
