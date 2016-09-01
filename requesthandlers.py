@@ -277,14 +277,7 @@ class ResourceHandler(BearerRequestHandler):
             response = make_response(json.dumps(resources_payload), 200)
 
         else: # resource_id
-            print "user_id:"
-            print self.oauth.user_id
-            print "resource_id:"
-            print resource_id
-
             resource = self.Resources.get(user_id=self.oauth.user_id, id=resource_id, active=True)
-
-            print resource
 
             response = make_response(ResourcePayload(resource).getPayload(), 200)
 
@@ -323,9 +316,6 @@ class EndpointHandler(BearerRequestHandler):
 
         resource = self.Resources.get(id=resource_id, active=True)
         endpoint = self.Endpoints.get(method=method, resource_id=resource_id, collection=collection, active=True)
-
-        print "endpoint"
-        print resource
 
         if endpoint:
             self.Endpoints.update(id=endpoint.id, active=False)

@@ -331,7 +331,7 @@ class Util:
         return relative_url.lower()
 
     @staticmethod
-    def generate_har_request(method, resource, relative_url, base_url="http://prod.magicstack.io/"):
+    def generate_har_request(method, resource, relative_url, base_url):
         headers = []
 
         if resource.auth_type == 'basic':
@@ -345,8 +345,21 @@ class Util:
         if method.lower() == 'post' or method.lower() == 'put':
             data_json = {}
             for parameter in resource.parameters:
+                print "parameter"
+                print parameter
                 if parameter['read_only'] == False:
-                    data_json[parameter['name']] = 'test value'
+                    if parameter['type'].lower() == 'string':
+                        test_value = "test value"
+                    elif parameter['type'].lower() == 'number':
+                        test_value = 101
+                    elif parameter['type'].lower() == 'boolean':
+                        test_value = True
+                    elif parameter['type'].lower() == 'object':
+                        test_value = {}
+                    elif parameter['type'].lower() == 'array':
+                        test_value = []
+
+                    data_json[parameter['name']] = test_value
                     #postData['params'].append({"name":parameter['name'], "value":"test value"})
 
             postData['text'] = json.dumps(data_json)
@@ -357,11 +370,11 @@ class Util:
 
         har_request = {"method":method, "url":url, "headers":headers, "queryString":queryString, "postData":postData}
 
-        print "generated har request:"
-        print har_request
+        #print "generated har request:"
+        #print har_request
 
         return har_request
 
     @staticmethod
     def get_base_url():
-        return 'http://sandbox.magicstack.io/'
+        return 'http://prod.magicstack.io/'
