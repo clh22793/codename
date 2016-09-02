@@ -4,6 +4,17 @@ import customexception
 
 class Util:
     @staticmethod
+    def generate_hash(value, algorithm):
+        if algorithm == 'sha1':
+            hash_object = hashlib.sha1(value)
+        elif algorithm == 'sha256':
+            hash_object = hashlib.sha256(value)
+        elif algorithm == 'md5':
+            hash_object = hashlib.md5(value)
+
+        return hash_object.hexdigest()
+
+    @staticmethod
     def generate_id(value):
         hash_object = hashlib.sha1(value+str(time.time())+str(random.random()))
         return hash_object.hexdigest()
@@ -28,6 +39,7 @@ class Util:
     def generate_temporary_username():
         return str(random.random())
 
+    # DEPRECATED
     @staticmethod
     def create_oauth_record(access_token, refresh_token, user):
         oauth = OauthRec()
@@ -314,21 +326,21 @@ class Util:
         '''
 
         if method.lower() == 'get' and collection == True and parent_resource:
-            relative_url = parent_resource.plurality+"/:"+parent_resource.name.upper()+"_ID/"+resource.plurality
+            relative_url = parent_resource.plurality.lower()+"/:"+parent_resource.name.upper()+"_ID/"+resource.plurality.lower()
         elif method.lower() == 'get' and collection == True:
-            relative_url = resource.plurality
+            relative_url = resource.plurality.lower()
         elif method.lower() == 'get':
-            relative_url = resource.plurality+"/:"+resource.name.upper()+"_ID"
+            relative_url = resource.plurality.lower()+"/:"+resource.name.upper()+"_ID"
         elif method.lower() == 'post' and parent_resource is None:
-            relative_url = resource.plurality
+            relative_url = resource.plurality.lower()
         elif method.lower() == 'post':
-            relative_url = parent_resource.plurality+"/:"+parent_resource.name.upper()+"_ID/"+resource.plurality
+            relative_url = parent_resource.plurality.lower()+"/:"+parent_resource.name.upper()+"_ID/"+resource.plurality.lower()
         elif method.lower() == 'put':
-            relative_url = resource.plurality+"/:"+resource.name.upper()+"_ID"
+            relative_url = resource.plurality.lower()+"/:"+resource.name.upper()+"_ID"
         else:
-            relative_url = resource.plurality+"/:"+resource.name.upper()+"_ID"
+            relative_url = resource.plurality.lower()+"/:"+resource.name.upper()+"_ID"
 
-        return relative_url.lower()
+        return relative_url
 
     @staticmethod
     def generate_har_request(method, resource, relative_url, base_url):
@@ -356,7 +368,7 @@ class Util:
                         test_value = True
                     elif parameter['type'].lower() == 'object':
                         test_value = {}
-                    elif parameter['type'].lower() == 'array':
+                    else: #elif parameter['type'].lower() == 'array':
                         test_value = []
 
                     data_json[parameter['name']] = test_value
@@ -369,9 +381,6 @@ class Util:
         url = base_url + relative_url
 
         har_request = {"method":method, "url":url, "headers":headers, "queryString":queryString, "postData":postData}
-
-        #print "generated har request:"
-        #print har_request
 
         return har_request
 

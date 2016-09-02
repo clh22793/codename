@@ -90,6 +90,10 @@ class DeploymentPayload(Payload):
     def setPayload(self, model):
         self.payload = {'meta':{'type':'deployment'}, 'content':{"id":model.id}}
 
+class ApiKeysPayload(Payload):
+    def setPayload(self, model):
+        self.payload = {'meta':{'type':'apikeys'}, 'content':{"id":model.id, "magicstack_token":model.basic_key}}
+
 class AppUserPayload(ParameterPayload):
     def setParameters(self, name, parameters):
         content = {}
@@ -105,3 +109,5 @@ class AppResourcePayload(ParameterPayload):
             content[key] = value
 
         self.payload = {'meta':{'type':name}, 'content':content}
+
+

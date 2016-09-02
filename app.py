@@ -116,6 +116,12 @@ def swaggers(version_id):
     swaggerhandler = requesthandlers.SwaggerHandler()
     return swaggerhandler.process(request=request, version_id=version_id)
 
+@app.route('/apis/<api_id>/keys', methods=['GET'])
+def api_keys(api_id):
+    apikeyshandler = requesthandlers.ApiKeysHandler()
+    return apikeyshandler.process(request=request, api_id=api_id)
+
+# DEPRECATED; ONLY AN EXAMPLE!!
 @app.route('/data')
 def names():
     data = {"names": ["Chris", "Hank", "Harry", "joe"]}

@@ -199,3 +199,4 @@ class model_deployment(model_base):
 class model_api_keys(model_base):
     def set_table(self):
         self.table = 'api_keys'
+

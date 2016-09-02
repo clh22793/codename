@@ -15,6 +15,7 @@ from payload import ResourcePayload
 from payload import EndpointPayload
 from payload import SwaggerPayload
 from payload import DeploymentPayload
+from payload import ApiKeysPayload
 
 from models import Map
 
@@ -154,8 +155,8 @@ class ApiHandler(BearerRequestHandler):
             api = self.Apis.insert(id=api_id, title=title, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
 
             # create 1st api key
-            client_id = Util.generate_id('client_id'+title)
-            client_secret = Util.generate_id('client_secret'+title)
+            client_id = Util.generate_hash('client_id'+title, 'md5') #  Util.generate_id('client_id'+title)
+            client_secret = Util.generate_hash('client_secret'+title, 'md5') # Util.generate_id('client_secret'+title)
             basic_key = base64.b64encode(client_id+":"+client_secret)
             api_key = self.Api_keys.insert(id=Util.generate_id(client_id+client_secret), user_id=self.oauth.user_id, api_id=api_id, active=active, client_id=client_id, client_secret=client_secret, basic_key=basic_key, created=created)
 
@@ -394,6 +395,24 @@ class DeploymentHandler(BearerRequestHandler):
         deployment = self.Deployments.insert(id=Util.generate_id(version_id), version_id=version_id, swagger=swagger_object, environment=environment, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
 
         response = make_response(DeploymentPayload(deployment).getPayload(), 201)
+
+        return response
+
+class ApiKeysHandler(BearerRequestHandler):
+    def get(self, **kwargs):
+        request = kwargs['request']
+        api_id = kwargs['api_id'] if 'api_id' in kwargs else None
+
+        print "api_id: "+api_id
+        print "user_id: "+self.oauth.user_id
+
+        #settings = self.Settings.fetch(api_id=api_id, user_id=self.oauth.user_id, active=True)
+        api_keys = self.Api_keys.get(user_id=self.oauth.user_id, api_id=api_id, active=True)
+
+        print "api_keys:"
+        print api_keys
+
+        response = make_response(ApiKeysPayload(api_keys).getPayload(), 200)
 
         return response
 
