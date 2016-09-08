@@ -308,42 +308,25 @@ class Util:
 
     @staticmethod
     def get_relative_url(method, resource, collection, parent_resource=None):
-        '''
         if method.lower() == 'get' and collection == True and parent_resource:
-            relative_url = parent_resource.plurality+"/{"+parent_resource.name+"_id}/"+resource.plurality
-        elif method.lower() == 'get' and collection == True:
-            relative_url = resource.plurality
-        elif method.lower() == 'get':
-            relative_url = resource.plurality+"/{"+resource.name.lower()+"_id}"
-        elif method.lower() == 'post' and parent_resource is None:
-            relative_url = resource.plurality
-        elif method.lower() == 'post':
-            relative_url = parent_resource.plurality+"/{"+parent_resource.name+"_id}/"+resource.plurality
-        elif method.lower() == 'put':
-            relative_url = resource.plurality+"/{"+resource.name.lower()+"_id}"
-        else:
-            relative_url = resource.plurality+"/{"+resource.name.lower()+"_id}"
-        '''
-
-        if method.lower() == 'get' and collection == True and parent_resource:
-            relative_url = parent_resource.plurality.lower()+"/:"+parent_resource.name.upper()+"_ID/"+resource.plurality.lower()
+            relative_url = parent_resource.plurality.lower()+"/{"+parent_resource.name.upper()+"_ID}/"+resource.plurality.lower()
         elif method.lower() == 'get' and collection == True:
             relative_url = resource.plurality.lower()
         elif method.lower() == 'get':
-            relative_url = resource.plurality.lower()+"/:"+resource.name.upper()+"_ID"
+            relative_url = resource.plurality.lower()+"/{"+resource.name.upper()+"_ID}"
         elif method.lower() == 'post' and parent_resource is None:
             relative_url = resource.plurality.lower()
         elif method.lower() == 'post':
-            relative_url = parent_resource.plurality.lower()+"/:"+parent_resource.name.upper()+"_ID/"+resource.plurality.lower()
+            relative_url = parent_resource.plurality.lower()+"/{"+parent_resource.name.upper()+"_ID}/"+resource.plurality.lower()
         elif method.lower() == 'put':
-            relative_url = resource.plurality.lower()+"/:"+resource.name.upper()+"_ID"
+            relative_url = resource.plurality.lower()+"/{"+resource.name.upper()+"_ID}"
         else:
-            relative_url = resource.plurality.lower()+"/:"+resource.name.upper()+"_ID"
+            relative_url = resource.plurality.lower()+"/{"+resource.name.upper()+"_ID}"
 
         return relative_url
 
     @staticmethod
-    def generate_har_request(method, resource, relative_url, base_url):
+    def generate_har_request(method, resource, version, relative_url, base_url):
         headers = []
 
         if resource.auth_type == 'basic':
@@ -378,7 +361,7 @@ class Util:
 
             headers.append({"name":"Content-Type", "value":"application/json"})
 
-        url = base_url + relative_url
+        url = base_url + version.name + '/' + relative_url
 
         har_request = {"method":method, "url":url, "headers":headers, "queryString":queryString, "postData":postData}
 
@@ -386,4 +369,12 @@ class Util:
 
     @staticmethod
     def get_base_url():
-        return 'http://prod.magicstack.io/'
+        env = Util.get_environment()
+        if env == 'dev':
+            return 'http://dev.magicstack.io/'
+        else:
+            return 'http://prod.magicstack.io/'
+
+    @staticmethod
+    def get_environment():
+        return 'dev'

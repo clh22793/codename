@@ -3,6 +3,7 @@ from models import model_version
 from models import model_resource
 from models import model_endpoint
 import json, re
+from util import Util
 
 class Swagger:
     @staticmethod
@@ -15,7 +16,7 @@ class Swagger:
         swagger_object['schemes'] = Swagger.get_schemes()
         swagger_object['paths'] = Swagger.get_paths(resources, endpoints)
         swagger_object['definitions'] = Swagger.get_object_definitions(resources)
-        swagger_object['securityDefinitions'] = Swagger.get_security_definitions()
+        swagger_object['securityDefinitions'] = Swagger.get_security_definitions(environment)
 
         #swagger_object['consumes'] = None
         #swagger_object['produces'] = None
@@ -37,9 +38,16 @@ class Swagger:
     @staticmethod
     def get_host(environment):
         if environment.lower() == 'sandbox':
-            return 'sandbox.magicstack.io'
+            host = 'sandbox.magicstack.io'
         else:
-            return 'api.magickstack.io'
+            host = 'prod.magickstack.io'
+
+        # make this work for the dev environment
+        env = Util.get_environment()
+        if env == 'dev':
+            host = 'dev-' + host
+
+        return host
 
     @staticmethod
     def get_basePath(version_name):
@@ -58,15 +66,17 @@ class Swagger:
                 if endpoint.resource_id == tmp.id:
                     resource = tmp
 
-            print "getting path for: "+endpoint.method
-            print endpoint
+            #print "getting path for: "+endpoint.method
+            #print endpoint
 
             status_code = "201" if endpoint.method == 'post' else '200'
             response_type = "array" if endpoint.collection == True else "object"
 
-            if endpoint.relative_url not in paths:
+            if endpoint.relative_url.lower() not in paths:
                 paths[endpoint.relative_url.lower()] = {}
                 paths[endpoint.relative_url.lower()]['x-singular'] = resource.name.lower()
+
+            #print "doing "+endpoint.relative_url.lower()+" for "+endpoint.method
 
             paths[endpoint.relative_url.lower()][endpoint.method] = {}
             paths[endpoint.relative_url.lower()][endpoint.method]['description'] = endpoint.description
@@ -80,6 +90,11 @@ class Swagger:
             paths[endpoint.relative_url.lower()][endpoint.method]['responses'][status_code]['schema']['items'] = {}
             paths[endpoint.relative_url.lower()][endpoint.method]['responses'][status_code]['schema']['items']['$ref'] = '#/definitions/'+resource.name
             paths[endpoint.relative_url.lower()][endpoint.method]['parameters'] = []
+
+            print "\n\n"
+            print endpoint.relative_url.lower() +" "+ endpoint.method
+            print paths[endpoint.relative_url.lower()]
+            print "\n\n"
 
             if endpoint.method == 'post' or endpoint.method == 'put':
                 paths[endpoint.relative_url.lower()][endpoint.method]['parameters'].append({"in":"body", "name":"body", "description":"payload", "required":True, "schema":{'$ref':'#/definitions/'+resource.name}})
@@ -107,6 +122,7 @@ class Swagger:
 
             paths[endpoint.relative_url.lower()][endpoint.method]['security'] = []
 
+            # rewrite to look for resource.auth_type instead of this hardcoded crap!!!
             if resource.template and resource.template.lower() == 'user':
                 paths[endpoint.relative_url.lower()][endpoint.method]['security'].append({"api_key":[]})
             else:
@@ -114,6 +130,9 @@ class Swagger:
 
             # this is where i'll handle error payloads
             #paths[resource.plurality][endpoint.method]['responses']['default'] = {}
+
+        print "\n\n\nPATHS"
+        print paths
 
         return paths
 
@@ -142,7 +161,7 @@ class Swagger:
         return definitions
 
     @staticmethod
-    def get_security_definitions():
+    def get_security_definitions(environment):
         definitions = {}
         definitions['api_key'] = {}
         definitions['api_key']['type'] = 'apiKey'
@@ -152,7 +171,7 @@ class Swagger:
         definitions['oauth2'] = {}
         definitions['oauth2']['type'] = 'oauth2'
         definitions['oauth2']['flow'] = 'password'
-        definitions['oauth2']['tokenUrl'] = 'http://sandbox.magicstack.io/oauth2/token'
+        definitions['oauth2']['tokenUrl'] = 'http://'+Swagger.get_host(environment)+'/oauth2/token'
         definitions['oauth2']['scopes'] = {"*":"all access"}
 
         return definitions

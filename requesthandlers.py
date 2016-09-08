@@ -317,13 +317,14 @@ class EndpointHandler(BearerRequestHandler):
 
         resource = self.Resources.get(id=resource_id, active=True)
         endpoint = self.Endpoints.get(method=method, resource_id=resource_id, collection=collection, active=True)
+        version = self.Versions.get(id=resource.version_id, active=True)
 
         if endpoint:
             self.Endpoints.update(id=endpoint.id, active=False)
 
         parent_resource = self.Resources.get(id=resource.parent_resource_id, active=True) if resource.parent_resource_id else None
         relative_url = Util.get_relative_url(method, resource, collection, parent_resource)
-        har_request = Util.generate_har_request(method, resource, relative_url, Util.get_base_url())
+        har_request = Util.generate_har_request(method, resource, version, relative_url, Util.get_base_url())
         code_snippets = Util.get_code_snippets(har_request)
 
         consumes = []
@@ -370,7 +371,7 @@ class DeploymentHandler(BearerRequestHandler):
         active = True
 
         # update all existing deployments to active=False
-        deployments = self.Deployments.fetch(version_id=version_id)
+        deployments = self.Deployments.fetch(version_id=version_id, environment=environment)
         for deployment in deployments:
             self.Deployments.update(id=deployment['id'], active=False)
 
@@ -388,11 +389,10 @@ class DeploymentHandler(BearerRequestHandler):
         endpoints = tmp_endpoints
 
         version = self.Versions.get(id=version_id, active=True)
-
         api = self.Apis.get(id=version.api_id, active=True)
 
         swagger_object = Swagger.generate(api, version, resources, endpoints, environment)
-        deployment = self.Deployments.insert(id=Util.generate_id(version_id), version_id=version_id, swagger=swagger_object, environment=environment, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
+        deployment = self.Deployments.insert(id=Util.generate_id(version_id), version_id=version_id, version_name=version.name, api_id=api.id, swagger=swagger_object, environment=environment, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
 
         response = make_response(DeploymentPayload(deployment).getPayload(), 201)
 
