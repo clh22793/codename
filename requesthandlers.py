@@ -241,8 +241,8 @@ class ResourceHandler(BearerRequestHandler):
         version_id = kwargs['version_id'] if 'version_id' in kwargs else None
 
         data = json.loads(request.get_data())
-        name = data['name']
-        plurality = data['plurality']
+        name = data['name'].lower()
+        plurality = data['plurality'].lower()
         parent_resource_id = data['parent_resource_id']
         parameters = data['parameters']
         created = datetime.datetime.utcnow()
@@ -288,8 +288,8 @@ class ResourceHandler(BearerRequestHandler):
         resource_id = kwargs['resource_id'] if 'resource_id' in kwargs else None
 
         data = json.loads(request.get_data())
-        name = data['name']
-        plurality = data['plurality']
+        name = data['name'].lower()
+        plurality = data['plurality'].lower()
         parent_resource_id = data['parent_resource_id']
         parameters = data['parameters']
 
@@ -326,6 +326,7 @@ class EndpointHandler(BearerRequestHandler):
         relative_url = Util.get_relative_url(method, resource, collection, parent_resource)
         har_request = Util.generate_har_request(method, resource, version, relative_url, Util.get_base_url())
         code_snippets = Util.get_code_snippets(har_request)
+        code_snippets['curl'] = code_snippets['curl'].replace('%7B', ':').replace('%7D', '');
 
         consumes = []
         produces = []
