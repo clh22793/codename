@@ -131,7 +131,7 @@ class OauthHandler(BasicRequestHandler):
             active = True
             user_id = user.id
 
-            oauth = self.Oauths.insert(id=Util.generate_id(access_token), access_token=access_token, refresh_token=refresh_token, created=created, active=active, user_id=user_id, client_id=self.client.id)
+            oauth = self.Oauths.insert(id=Util.generate_id(access_token), access_token=access_token, refresh_token=refresh_token, created=created, active=active, user_id=user_id, client_id=self.client.client_id)
 
             response = make_response(OauthPayload(oauth).getPayload(), 201)
         else:
@@ -245,6 +245,10 @@ class ResourceHandler(BearerRequestHandler):
         plurality = data['plurality'].lower()
         parent_resource_id = data['parent_resource_id']
         parameters = data['parameters']
+        # sanitize parameters
+        for param in parameters:
+            param['name'] = param['name'].strip().replace(' ', '_')
+
         created = datetime.datetime.utcnow()
         resource_id = Util.generate_id(name)
         template = data['template'].lower()
@@ -292,6 +296,9 @@ class ResourceHandler(BearerRequestHandler):
         plurality = data['plurality'].lower()
         parent_resource_id = data['parent_resource_id']
         parameters = data['parameters']
+        # sanitize parameters
+        for param in parameters:
+            param['name'] = param['name'].strip().replace(' ', '_')
 
         resource = self.Resources.update(id=resource_id, name=name, plurality=plurality, parent_resource_id=parent_resource_id, parameters=parameters)
 
