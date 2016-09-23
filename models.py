@@ -200,3 +200,7 @@ class model_api_keys(model_base):
     def set_table(self):
         self.table = 'api_keys'
 
+class model_api_objects(model_base):
+    def set_table(self):
+        self.table = 'api_objects'
+

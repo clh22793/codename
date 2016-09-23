@@ -29,6 +29,7 @@ from models import model_resource
 from models import model_endpoint
 from models import model_deployment
 from models import model_api_keys
+from models import model_api_objects
 
 
 class RequestHandler():
@@ -46,6 +47,7 @@ class RequestHandler():
         self.Endpoints = model_endpoint()
         self.Deployments = model_deployment()
         self.Api_keys = model_api_keys()
+        self.Api_objects = model_api_objects()
 
     def process(self, **kwargs):
         self.authorize(kwargs['request'])
@@ -421,6 +423,37 @@ class ApiKeysHandler(BearerRequestHandler):
         print api_keys
 
         response = make_response(ApiKeysPayload(api_keys).getPayload(), 200)
+
+        return response
+
+class DataHandler(BearerRequestHandler):
+    def get(self, **kwargs):
+        request = kwargs['request']
+        resource_id = kwargs['resource_id'] if 'resource_id' in kwargs else None
+
+        #print "api_id: "+api_id
+        #print "user_id: "+self.oauth.user_id
+
+        #settings = self.Settings.fetch(api_id=api_id, user_id=self.oauth.user_id, active=True)
+        #api_keys = self.Api_keys.get(user_id=self.oauth.user_id, api_id=api_id, active=True)
+
+        # get resource
+        resource = self.Resources.get(id=resource_id, active=True)
+        print "resource!!!"
+        print resource
+
+        # get api_objects with this resource_id
+        api_objects = self.Api_objects.fetch(resource_id=resource['id'], active=True)
+        print "api_objects!!!"
+        print api_objects
+
+        data_payload = []
+
+        for api_object in api_objects:
+            print api_object['body']
+            data_payload.append(api_object['body'])
+
+        response = make_response(json.dumps(data_payload), 200)
 
         return response
 

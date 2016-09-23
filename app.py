@@ -121,6 +121,11 @@ def api_keys(api_id):
     apikeyshandler = requesthandlers.ApiKeysHandler()
     return apikeyshandler.process(request=request, api_id=api_id)
 
+@app.route('/resources/<resource_id>/data', methods=['GET'])
+def resources_data(resource_id):
+    datahandler = requesthandlers.DataHandler()
+    return datahandler.process(request=request, resource_id=resource_id)
+
 # DEPRECATED; ONLY AN EXAMPLE!!
 @app.route('/data')
 def names():
