@@ -444,13 +444,14 @@ class DataHandler(BearerRequestHandler):
 
         # get api_objects with this resource_id
         api_objects = self.Api_objects.fetch(resource_id=resource['id'], active=True)
-        print "api_objects!!!"
-        print api_objects
+        #print "api_objects!!!"
+        #print api_objects
 
         data_payload = []
 
         for api_object in api_objects:
-            print api_object['body']
+            #print api_object
+            #record = {"body":api_object['body'], "resource":api_object['resource']}
             data_payload.append(api_object['body'])
 
         response = make_response(json.dumps(data_payload), 200)
