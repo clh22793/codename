@@ -1,15 +1,20 @@
-import pymongo, datetime, hashlib, base64
 from pymongo import MongoClient
-from bson.objectid import ObjectId
+from ConfigParser import SafeConfigParser
+parser = SafeConfigParser()
+parser.read(".config")
+
+DB_USERNAME = parser.get('DATABASE', 'USERNAME')
+DB_PASSWORD = parser.get('DATABASE', 'PASSWORD')
+DB_HOST = parser.get('DATABASE', 'HOST')
 
 # INIT DB CONNECTION
 def get_mongo_connection():
-    conn = MongoClient('mongodb://aws-us-east-1-portal.14.dblayer.com:10871,aws-us-east-1-portal.13.dblayer.com:10856')
+    conn = MongoClient(DB_HOST)
     return conn
 
 def db_connection():
     conn = get_mongo_connection()
-    conn['dev-saasdoc'].authenticate('devtest', 'devtest', mechanism='SCRAM-SHA-1')
+    conn['dev-saasdoc'].authenticate(DB_USERNAME, DB_PASSWORD, mechanism='SCRAM-SHA-1')
     return conn['dev-saasdoc']
 
 # simple map function

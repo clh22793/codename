@@ -1,6 +1,9 @@
 import json, requests
 import hashlib, time, random, re, base64
 import customexception
+from ConfigParser import SafeConfigParser
+parser = SafeConfigParser()
+parser.read(".config")
 
 class Util:
     @staticmethod
@@ -369,12 +372,17 @@ class Util:
 
     @staticmethod
     def get_base_url():
+        '''
         env = Util.get_environment()
         if env == 'dev':
             return 'http://dev.magicstack.io/'
         else:
             return 'http://prod.magicstack.io/'
+        '''
+
+        return parser.get('GENERAL', 'MAGIC_BASE_URL')
+
 
     @staticmethod
     def get_environment():
-        return 'dev'
+        return parser.get('GENERAL', 'ENVIRONMENT')

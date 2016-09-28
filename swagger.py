@@ -1,22 +1,18 @@
-from models import model_api
-from models import model_version
-from models import model_resource
-from models import model_endpoint
 import json, re
 from util import Util
 
 class Swagger:
     @staticmethod
-    def generate(api, version, resources, endpoints, environment):
+    def generate(api, version, resources, endpoints, magic_environment):
         swagger_object = {}
         swagger_object['swagger'] = Swagger.get_swagger_version()
         swagger_object['info'] = Swagger.get_info_object(title=api.title, version=version.name)
-        swagger_object['host'] = Swagger.get_host(environment)
+        swagger_object['host'] = Swagger.get_host(magic_environment)
         swagger_object['basePath'] = Swagger.get_basePath(version.name)
         swagger_object['schemes'] = Swagger.get_schemes()
         swagger_object['paths'] = Swagger.get_paths(resources, endpoints)
         swagger_object['definitions'] = Swagger.get_object_definitions(resources)
-        swagger_object['securityDefinitions'] = Swagger.get_security_definitions(environment)
+        swagger_object['securityDefinitions'] = Swagger.get_security_definitions(magic_environment)
 
         #swagger_object['consumes'] = None
         #swagger_object['produces'] = None
@@ -36,8 +32,8 @@ class Swagger:
         return info
 
     @staticmethod
-    def get_host(environment):
-        if environment.lower() == 'sandbox':
+    def get_host(magic_environment):
+        if magic_environment.lower() == 'sandbox':
             host = 'sandbox.magicstack.io'
         else:
             host = 'prod.magickstack.io'

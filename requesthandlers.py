@@ -376,12 +376,12 @@ class DeploymentHandler(BearerRequestHandler):
 
         data = json.loads(request.get_data())
 
-        environment = data['environment']
+        magic_environment = data['environment']
         created = datetime.datetime.utcnow()
         active = True
 
         # update all existing deployments to active=False
-        deployments = self.Deployments.fetch(version_id=version_id, environment=environment)
+        deployments = self.Deployments.fetch(version_id=version_id, environment=magic_environment)
         for deployment in deployments:
             self.Deployments.update(id=deployment['id'], active=False)
 
@@ -401,8 +401,8 @@ class DeploymentHandler(BearerRequestHandler):
         version = self.Versions.get(id=version_id, active=True)
         api = self.Apis.get(id=version.api_id, active=True)
 
-        swagger_object = Swagger.generate(api, version, resources, endpoints, environment)
-        deployment = self.Deployments.insert(id=Util.generate_id(version_id), version_id=version_id, version_name=version.name, api_id=api.id, swagger=swagger_object, environment=environment, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
+        swagger_object = Swagger.generate(api, version, resources, endpoints, magic_environment)
+        deployment = self.Deployments.insert(id=Util.generate_id(version_id), version_id=version_id, version_name=version.name, api_id=api.id, swagger=swagger_object, environment=magic_environment, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
 
         response = make_response(DeploymentPayload(deployment).getPayload(), 201)
 
