@@ -3,7 +3,7 @@ import hashlib, time, random, re, base64
 import customexception
 from ConfigParser import SafeConfigParser
 parser = SafeConfigParser()
-parser.read("config")
+parser.read("./config")
 
 class Util:
     @staticmethod
