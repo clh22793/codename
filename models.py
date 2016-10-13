@@ -6,6 +6,7 @@ parser.read("config")
 DB_USERNAME = parser.get('DATABASE', 'USERNAME')
 DB_PASSWORD = parser.get('DATABASE', 'PASSWORD')
 DB_HOST = parser.get('DATABASE', 'HOST')
+DB_NAME = parser.get('DATABASE', 'NAME')
 
 # INIT DB CONNECTION
 def get_mongo_connection():
