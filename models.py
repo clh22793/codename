@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 from ConfigParser import SafeConfigParser
 parser = SafeConfigParser()
-parser.read("/codename/config")
+parser.read("config")
 
 DB_USERNAME = parser.get('DATABASE', 'USERNAME')
 DB_PASSWORD = parser.get('DATABASE', 'PASSWORD')
@@ -14,8 +14,8 @@ def get_mongo_connection():
 
 def db_connection():
     conn = get_mongo_connection()
-    conn['dev-saasdoc'].authenticate(DB_USERNAME, DB_PASSWORD, mechanism='SCRAM-SHA-1')
-    return conn['dev-saasdoc']
+    conn[DB_NAME].authenticate(DB_USERNAME, DB_PASSWORD, mechanism='SCRAM-SHA-1')
+    return conn['DB_NAME']
 
 # simple map function
 class Map(dict):
