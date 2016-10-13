@@ -16,7 +16,7 @@ def get_mongo_connection():
 def db_connection():
     conn = get_mongo_connection()
     conn[DB_NAME].authenticate(DB_USERNAME, DB_PASSWORD, mechanism='SCRAM-SHA-1')
-    return conn['DB_NAME']
+    return conn[DB_NAME]
 
 # simple map function
 class Map(dict):
