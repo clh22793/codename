@@ -314,10 +314,21 @@ class ResourceHandler(BearerRequestHandler):
     def delete(self, **kwargs):
         resource_id = kwargs['resource_id'] if 'resource_id' in kwargs else None
 
+        # delete resource
         resource = self.Resources.update(id=resource_id, active=False)
 
-        response = make_response(json.dumps({}), 200)
+        # delete resource endpoints
+        endpoints = self.Endpoints.fetch(resource_id=resource_id, active=True)
 
+        for endpoint in endpoints:
+            tmp = Map(endpoint)
+            print "TMP"
+            print tmp
+            #endpoints_payload.append(EndpointPayload(tmp).getPayload(False))
+            self.Endpoints.update(id=tmp.id, active=False)
+
+        # return empty response
+        response = make_response(json.dumps({}), 200)
         return response
 
 
