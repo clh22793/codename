@@ -311,6 +311,16 @@ class ResourceHandler(BearerRequestHandler):
 
             return response
 
+    def delete(self, **kwargs):
+        resource_id = kwargs['resource_id'] if 'resource_id' in kwargs else None
+
+        resource = self.Resources.update(id=resource_id, active=False)
+
+        response = make_response(json.dumps({}), 200)
+
+        return response
+
+
 class EndpointHandler(BearerRequestHandler):
     def post(self, **kwargs):
         request = kwargs['request']
