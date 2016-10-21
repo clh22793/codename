@@ -123,9 +123,12 @@ class OauthHandler(BasicRequestHandler):
         # check for user
         username = request.form['username']
         password = request.form['password']
-        user = self.Users.get(username=username, password=Util.generate_password(password))
+        user = self.Users.get(username=username)
 
-        if user:
+        Util.confirm_password(password, user.password)
+
+        #if user:
+        if Util.confirm_password(password, user.password):
             # create token
             access_token = Util.generate_token('access_token'+username+password)
             refresh_token = Util.generate_token('access_token'+username+password)
@@ -150,7 +153,7 @@ class ApiHandler(BearerRequestHandler):
         created = datetime.datetime.utcnow()
         active = True
 
-        api = self.Apis.get(title=title, active=True)
+        api = self.Apis.get(title=title, user_id=self.oauth.user_id, active=True)
         if not api:
             # create api
             api_id = Util.generate_id(title+self.oauth.user_id)

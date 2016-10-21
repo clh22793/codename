@@ -1,5 +1,5 @@
 import json, requests
-import hashlib, time, random, re, base64
+import hashlib, time, random, re, bcrypt
 import customexception
 from ConfigParser import SafeConfigParser
 parser = SafeConfigParser()
@@ -30,8 +30,14 @@ class Util:
 
     @staticmethod
     def generate_password(value):
-        hash_object = hashlib.sha256(value)
-        return hash_object.hexdigest()
+        #hash_object = hashlib.sha256(value)
+        #return hash_object.hexdigest()
+
+        return bcrypt.hashpw(str(value), bcrypt.gensalt(10))
+
+    @staticmethod
+    def confirm_password(password, hashed):
+        return bcrypt.hashpw(str(password), str(hashed)) == hashed
 
     @staticmethod
     def generate_client_credential(value):
