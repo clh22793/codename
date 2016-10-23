@@ -121,6 +121,8 @@ class RequestHandler():
         swagger_object = Swagger.generate(api, version, resources, endpoints, magic_environment)
         deployment = self.Deployments.insert(id=Util.generate_id(version_id), version_id=version_id, version_name=version.name, api_id=api.id, swagger=swagger_object, environment=magic_environment, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
 
+        return deployment
+
 class BearerRequestHandler(RequestHandler):
     def authorize(self, request):
         # Authorization
