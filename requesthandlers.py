@@ -389,6 +389,10 @@ class ResourceHandler(BearerRequestHandler):
     def delete(self, **kwargs):
         resource_id = kwargs['resource_id'] if 'resource_id' in kwargs else None
 
+        resource = self.Resources.get(id=resource_id, active=True)
+        if resource.template.lower() == "user":
+            raise customexception.ResourceException(customexception.cannot_delete_resource)
+
         # delete resource
         resource = self.Resources.update(id=resource_id, active=False)
 
