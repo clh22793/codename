@@ -61,6 +61,66 @@ class RequestHandler():
         elif request.method == 'DELETE':
             return self.delete(**kwargs)
 
+    def save_endpoint(self, data, resource_id):
+
+        method = data['method']
+        name = data['name']
+        collection = data['collection'] if 'collection' in data else False
+        created = datetime.datetime.utcnow()
+        active = True
+        #resource_id = resource.id
+
+        resource = self.Resources.get(id=resource_id, active=True)
+        endpoint = self.Endpoints.get(method=method, resource_id=resource_id, collection=collection, active=True)
+        version = self.Versions.get(id=resource.version_id, active=True)
+
+        if endpoint:
+            self.Endpoints.update(id=endpoint.id, active=False)
+
+        parent_resource = self.Resources.get(id=resource.parent_resource_id, active=True) if resource.parent_resource_id else None
+        relative_url = Util.get_relative_url(method, resource, collection, parent_resource)
+        har_request = Util.generate_har_request(method, resource, version, relative_url, Util.get_base_url())
+        code_snippets = Util.get_code_snippets(har_request)
+        code_snippets['curl'] = code_snippets['curl'].replace('%7B', ':').replace('%7D', '');
+
+        consumes = []
+        produces = []
+        if method.lower() == 'post' or method.lower() == 'put':
+            consumes.append('application/json')
+            produces.append('application/json')
+        elif method.lower() == 'get':
+            produces.append('application/json')
+
+        endpoint = self.Endpoints.insert(id=Util.generate_id(method), version_id=resource.version_id, relative_url=relative_url,
+                                         code_snippets=code_snippets, method=method, collection=collection, har_request=har_request,
+                                         name=name, resource_id=resource_id, created=created, active=active, user_id=self.oauth.user_id,
+                                         client_id=self.oauth.client_id, produces=produces, consumes=consumes)
+
+        return endpoint
+
+    def save_deployment(self, version_id, magic_environment):
+        active = True
+        created = datetime.datetime.utcnow()
+
+        # insert deployment object
+        resources = self.Resources.fetch(version_id=version_id, active=True)
+        tmp_resources = []
+        for resource in resources:
+            tmp_resources.append(Map(resource))
+        resources = tmp_resources
+
+        endpoints = self.Endpoints.fetch(version_id=version_id, active=True)
+        tmp_endpoints = []
+        for endpoint in endpoints:
+            tmp_endpoints.append(Map(endpoint))
+        endpoints = tmp_endpoints
+
+        version = self.Versions.get(id=version_id, active=True)
+        api = self.Apis.get(id=version.api_id, active=True)
+
+        swagger_object = Swagger.generate(api, version, resources, endpoints, magic_environment)
+        deployment = self.Deployments.insert(id=Util.generate_id(version_id), version_id=version_id, version_name=version.name, api_id=api.id, swagger=swagger_object, environment=magic_environment, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
+
 class BearerRequestHandler(RequestHandler):
     def authorize(self, request):
         # Authorization
@@ -212,9 +272,21 @@ class VersionHandler(BearerRequestHandler):
             parameters = []
             parameters.append({"name":"username", "description":"email address", "read_only":False, "required":True, "type":"String", "fixed":True})
             parameters.append({"name":"password", "description":"user password", "read_only":False, "required":True, "type":"String", "fixed":True})
-
             resource = self.Resources.insert(id=Util.generate_id('user'), template='user', name='User', auth_type='basic', version_id=version_id, plurality='Users', parent_resource_id='None', parameters=parameters, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
             # end default user resource
+
+            # create user endpoints
+            self.save_endpoint({"name":"Add a "+resource.name, "method":"post","collection":False}, resource.id)
+            self.save_endpoint({"name":"Get a "+resource.name, "method":"get","collection":False}, resource.id)
+            self.save_endpoint({"name":"Get a collection of "+resource.name, "method":"get","collection":True}, resource.id)
+            self.save_endpoint({"name":"Update a "+resource.name, "method":"put","collection":False}, resource.id)
+            self.save_endpoint({"name":"Delete a "+resource.name, "method":"delete","collection":False}, resource.id)
+            # end user endpoints
+
+            # create deployment
+            magic_environment = "prod" # prod || sandbox
+            self.save_deployment(version_id, magic_environment)
+            # end create deployment
 
             response = make_response(VersionPayload(version).getPayload(), 201)
 
@@ -348,6 +420,10 @@ class EndpointHandler(BearerRequestHandler):
         created = datetime.datetime.utcnow()
         active = True
 
+        print "ENDPOINT HANDLER================="
+        print data
+        endpoint = self.save_endpoint(data, resource_id)
+        '''
         resource = self.Resources.get(id=resource_id, active=True)
         endpoint = self.Endpoints.get(method=method, resource_id=resource_id, collection=collection, active=True)
         version = self.Versions.get(id=resource.version_id, active=True)
@@ -373,6 +449,8 @@ class EndpointHandler(BearerRequestHandler):
                                          code_snippets=code_snippets, method=method, collection=collection, har_request=har_request,
                                          name=name, resource_id=resource_id, created=created, active=active, user_id=self.oauth.user_id,
                                          client_id=self.oauth.client_id, produces=produces, consumes=consumes)
+        '''
+
         response = make_response(EndpointPayload(endpoint).getPayload(), 201)
 
         return response
@@ -400,7 +478,7 @@ class DeploymentHandler(BearerRequestHandler):
 
         data = json.loads(request.get_data())
 
-        magic_environment = data['environment']
+        magic_environment = data['environment'] # prod || sandbox
         created = datetime.datetime.utcnow()
         active = True
 
@@ -410,6 +488,7 @@ class DeploymentHandler(BearerRequestHandler):
             self.Deployments.update(id=deployment['id'], active=False)
 
         # insert deployment object
+        '''
         resources = self.Resources.fetch(version_id=version_id, active=True)
         tmp_resources = []
         for resource in resources:
@@ -427,6 +506,9 @@ class DeploymentHandler(BearerRequestHandler):
 
         swagger_object = Swagger.generate(api, version, resources, endpoints, magic_environment)
         deployment = self.Deployments.insert(id=Util.generate_id(version_id), version_id=version_id, version_name=version.name, api_id=api.id, swagger=swagger_object, environment=magic_environment, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
+        '''
+
+        deployment = self.save_deployment(version_id, magic_environment)
 
         response = make_response(DeploymentPayload(deployment).getPayload(), 201)
 
