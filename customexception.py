@@ -26,6 +26,7 @@ missing_required_parameters = 402
 permission_denied = 501
 method_not_allowed = 502
 cannot_delete_resource = 503
+resource_has_children = 504
 
 # error code / message map
 error_codes_map = {}
@@ -41,17 +42,18 @@ error_codes_map[version_already_exists] = "version already exists"
 error_codes_map[version_not_found] = "could not found version"
 error_codes_map[section_not_found] = "could not found section"
 error_codes_map[endpoint_already_exists] = "endpoint already exists"
-error_codes_map[section_already_exists] = "section already exists"
-error_codes_map[invalid_payload] = "invalid payload"
-error_codes_map[permission_denied] = "permission denied"
-error_codes_map[resource_already_exists] = "resource already exists"
-error_codes_map[resource_not_found] = "resource not found"
-error_codes_map[method_not_allowed] = "method not allowed"
-error_codes_map[missing_required_parameters] = "missing required parameters"
-error_codes_map[parent_resource_not_found] = "parent resource not found"
-error_codes_map[cannot_delete_resource] = "cannot delete resource"
-error_codes_map[api_already_exists] = "api already exists"
-error_codes_map[swagger_already_exists] = "swagger already exists"
+error_codes_map[section_already_exists] = "Section already exists"
+error_codes_map[invalid_payload] = "Invalid payload"
+error_codes_map[permission_denied] = "Permission denied"
+error_codes_map[resource_already_exists] = "Resource already exists"
+error_codes_map[resource_not_found] = "Resource not found"
+error_codes_map[method_not_allowed] = "Method not allowed"
+error_codes_map[missing_required_parameters] = "Missing required parameters."
+error_codes_map[parent_resource_not_found] = "Parent resource not found."
+error_codes_map[cannot_delete_resource] = "Cannot delete resource."
+error_codes_map[api_already_exists] = "API already exists."
+error_codes_map[swagger_already_exists] = "Swagger already exists."
+error_codes_map[resource_has_children] = "Cannot delete. This resource has at least one child resource."
 
 class AuthException(Exception):
     pass

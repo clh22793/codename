@@ -395,6 +395,13 @@ class ResourceHandler(BearerRequestHandler):
         if resource.template.lower() == "user":
             raise customexception.ResourceException(customexception.cannot_delete_resource)
 
+        # first, raise error if there are any children of this resource
+        children = self.Resources.fetch(parent_resource_id=resource_id, active=True)
+        print "CHILDREN======="
+
+        if children.count() > 0:
+            raise customexception.ResourceException(customexception.resource_has_children)
+
         # delete resource
         resource = self.Resources.update(id=resource_id, active=False)
 
