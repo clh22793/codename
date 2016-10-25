@@ -2,8 +2,10 @@ import customexception
 import unirest
 
 class Email:
+    #API_KEY = "key-681208735ecee9dcc1364b20a78ee769"
     API_KEY = "key-681208735ecee9dcc1364b20a78ee769"
-    API_BASE_URL = "https://api.mailgun.net/v3/magicstack.io"
+    #API_BASE_URL = "https://api.mailgun.net/v3/magicstack.io"
+    API_BASE_URL = "https://api.mailgun.net/v3/kloudbit.com"
     DEV_EMAIL = "clh10242016@mailinator.com"
 
     def __init__(self, env):
