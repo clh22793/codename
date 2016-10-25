@@ -1,5 +1,6 @@
 import customexception
-import unirest
+#import unirest
+import requests
 
 class Email:
     #API_KEY = "key-681208735ecee9dcc1364b20a78ee769"
@@ -30,6 +31,7 @@ class Email:
         url = self.API_BASE_URL + "/messages"
         auth = ("api", self.API_KEY)
 
-        response = unirest.post(url,params=params,auth=auth)
-        print response.code
-        print response.body
+        response = requests.post(url,params=params,auth=auth)
+        print response
+
+        
