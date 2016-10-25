@@ -31,7 +31,7 @@ def unhandled_exception(exception):
 
 @app.route('/')
 def index():
-    return 'In the beginning, there was a command line...'
+    return 'In the Beginning... Was the Command Line'
 
 @app.route('/clients', methods=['POST'])
 def clients():
