@@ -1,6 +1,10 @@
 from flask import Flask, json, request, make_response
 from werkzeug import secure_filename
 import json,datetime,base64,os
+import mailgun
+from ConfigParser import SafeConfigParser
+parser = SafeConfigParser()
+parser.read("config")
 
 # internal imports
 import customexception
@@ -172,6 +176,10 @@ class UserHandler(BasicRequestHandler):
         if not user:
             user = self.Users.insert(username=username, id=user_id, password=password, active=active, created=created)
             response = make_response(UsersPayload(user).getPayload(), 201)
+
+            # send welcome email
+            email_client = mailgun.Email(parser.get('GENERAL', 'ENVIRONMENT'))
+            email_client.send_welcome_message(username)
 
             return response
 
