@@ -168,13 +168,14 @@ class UserHandler(BasicRequestHandler):
         # get vars
         username = request.form['username']
         password = Util.generate_password(request.form['password'])
+        name = request.form['name']
         active = True
         created = datetime.datetime.utcnow()
         user_id= Util.generate_token('user'+username+password)
 
         user = self.Users.get(username=username, active=True)
         if not user:
-            user = self.Users.insert(username=username, id=user_id, password=password, active=active, created=created)
+            user = self.Users.insert(username=username, id=user_id, password=password, name=name, active=active, created=created)
             response = make_response(UsersPayload(user).getPayload(), 201)
 
             # send welcome email

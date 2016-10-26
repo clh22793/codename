@@ -34,9 +34,9 @@ class Swagger:
     @staticmethod
     def get_host(magic_environment):
         if magic_environment.lower() == 'sandbox':
-            host = 'sandbox.magicstack.io'
+            host = 'sandbox.kloudbit.com'
         else:
-            host = 'prod.magickstack.io'
+            host = 'prod.kloudbit.com'
 
         # make this work for the dev environment
         env = Util.get_environment()
@@ -161,7 +161,7 @@ class Swagger:
         definitions = {}
         definitions['api_key'] = {}
         definitions['api_key']['type'] = 'apiKey'
-        definitions['api_key']['name'] = 'x-magicstack-key'
+        definitions['api_key']['name'] = 'x-kloudbit-key'
         definitions['api_key']['in'] = 'header'
 
         definitions['oauth2'] = {}

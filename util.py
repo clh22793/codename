@@ -339,7 +339,7 @@ class Util:
         headers = []
 
         if resource.auth_type == 'basic':
-            headers.append({"name":"Authorization", "value":"Basic [MAGICSTACK_TOKEN]"})
+            headers.append({"name":"Authorization", "value":"Basic [KLOUDBIT_TOKEN]"})
         else: # == 'oauth2'
             headers.append({"name":"Authorization", "value":"Bearer [ACCESS_TOKEN]"})
 
