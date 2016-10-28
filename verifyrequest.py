@@ -18,7 +18,7 @@ class VerifyRequest:
 
         if type.lower() == 'basic':
             # basic authorization
-            client = clients.get(token=auth_header[1], active=True)
+            client = clients.get({"token":auth_header[1], "active":True})
             #print client
 
             if not client._id:
@@ -30,7 +30,7 @@ class VerifyRequest:
             #print "TOKEN:"
             #print auth_header[1]
 
-            oauth = oauths.get(access_token=auth_header[1], active=True)
+            oauth = oauths.get({"access_token":auth_header[1], "active":True})
 
             if not oauth:
                 raise customexception.AuthException(customexception.invalid_token)

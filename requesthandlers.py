@@ -74,14 +74,14 @@ class RequestHandler():
         active = True
         #resource_id = resource.id
 
-        resource = self.Resources.get(id=resource_id, active=True)
-        endpoint = self.Endpoints.get(method=method, resource_id=resource_id, collection=collection, active=True)
-        version = self.Versions.get(id=resource.version_id, active=True)
+        resource = self.Resources.get({"id":resource_id, "active":True})
+        endpoint = self.Endpoints.get({"method":method, "resource_id":resource_id, "collection":collection, "active":True})
+        version = self.Versions.get({"id":resource.version_id, "active":True})
 
         if endpoint:
             self.Endpoints.update(id=endpoint.id, active=False)
 
-        parent_resource = self.Resources.get(id=resource.parent_resource_id, active=True) if resource.parent_resource_id else None
+        parent_resource = self.Resources.get({"id":resource.parent_resource_id, "active":True}) if resource.parent_resource_id else None
         relative_url = Util.get_relative_url(method, resource, collection, parent_resource)
         har_request = Util.generate_har_request(method, resource, version, relative_url, Util.get_base_url())
         code_snippets = Util.get_code_snippets(har_request)
@@ -110,20 +110,20 @@ class RequestHandler():
         created = datetime.datetime.utcnow()
 
         # insert deployment object
-        resources = self.Resources.fetch(version_id=version_id, active=True)
+        resources = self.Resources.fetch({"version_id":version_id, "active":True})
         tmp_resources = []
         for resource in resources:
             tmp_resources.append(Map(resource))
         resources = tmp_resources
 
-        endpoints = self.Endpoints.fetch(version_id=version_id, active=True)
+        endpoints = self.Endpoints.fetch({"version_id":version_id, "active":True})
         tmp_endpoints = []
         for endpoint in endpoints:
             tmp_endpoints.append(Map(endpoint))
         endpoints = tmp_endpoints
 
-        version = self.Versions.get(id=version_id, active=True)
-        api = self.Apis.get(id=version.api_id, active=True)
+        version = self.Versions.get({"id":version_id, "active":True})
+        api = self.Apis.get({"id":version.api_id, "active":True})
 
         swagger_object = Swagger.generate(api, version, resources, endpoints, magic_environment)
 
@@ -180,7 +180,7 @@ class UserHandler(BasicRequestHandler):
         created = datetime.datetime.utcnow()
         user_id= Util.generate_token('user'+username+password)
 
-        user = self.Users.get(username=username, active=True)
+        user = self.Users.get({"username":username, "active":True})
         if not user:
             acp = {"owner":{"type":"client", "id":self.client.client_id}, "access_control_list":[{"type":"client", "id":self.client.client_id, "permissions":["read", "write"]}]}
 
@@ -203,7 +203,7 @@ class OauthHandler(BasicRequestHandler):
         # check for user
         username = request.form['username']
         password = request.form['password']
-        user = self.Users.get(username=username)
+        user = self.Users.get({"username":username})
 
         Util.confirm_password(password, user.password)
 
@@ -236,14 +236,14 @@ class ApiHandler(BearerRequestHandler):
         created = datetime.datetime.utcnow()
         active = True
 
-        api = self.Apis.get(title=title, user_id=self.oauth.user_id, active=True)
+        api = self.Apis.get({"title":title, "user_id":self.oauth.user_id, "active":True})
         if not api:
             # create acp
             acp = {"owner":{"type":"user", "id":self.oauth.user_id}, "access_control_list":[{"type":"user", "id":self.oauth.user_id, "permissions":["read", "write"]}]}
 
             # create api
             api_id = Util.generate_id(title+self.oauth.user_id)
-            api = self.Apis.insert(id=api_id, title=title, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
+            api = self.Apis.insert(id=api_id, title=title, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id, access_control_policy=acp)
 
             # create 1st api key
             client_id = Util.generate_hash('client_id'+title, 'md5') #  Util.generate_id('client_id'+title)
@@ -261,10 +261,11 @@ class ApiHandler(BearerRequestHandler):
         api_id = kwargs['api_id'] if 'api_id' in kwargs else None
 
         if api_id:
-            api = self.Apis.get(user_id=self.oauth.user_id, id=api_id, active=True)
+            #api = self.Apis.get(user_id=self.oauth.user_id, id=api_id, active=True)
+            api = self.Apis.get({"user_id":self.oauth.user_id, "id":api_id, "active":True, "access_control_policy.access_control_list.id": self.oauth.user_id, "access_control_policy.access_control_list.permissions":"read"})
             response = make_response(ApiPayload(api).getPayload(), 200)
         else:
-            apis = self.Apis.fetch(user_id=self.oauth.user_id, active=True)
+            apis = self.Apis.fetch({"user_id":self.oauth.user_id, "active":True, "access_control_policy.access_control_list.id": self.oauth.user_id, "access_control_policy.access_control_list.permissions": "read"})
 
             apis_payload = []
 
@@ -290,12 +291,21 @@ class VersionHandler(BearerRequestHandler):
         version_id = Util.generate_id(name+api_id)
         #id = Util.generate_id(name+self.oauth.user_id)
 
-        version = self.Versions.get(name=name, api_id=api_id, active=True)
+        version = self.Versions.get({"name":name, "api_id":api_id, "active":True})
+
+        print "\n\nPOST VERSION============\n\n\n"
+
         if not version:
             # create acp
             acp = {"owner":{"type":"user", "id":self.oauth.user_id}, "access_control_list":[{"type":"user", "id":self.oauth.user_id, "permissions":["read", "write"]}]}
 
-            version = self.Versions.insert(id=version_id, name=name, api_id=api_id, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
+            print "\n\ninserting version with acp==================\n\n"
+
+
+            version = self.Versions.insert(id=version_id, name=name, api_id=api_id, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id, access_control_policy=acp)
+            print version
+            print "\n\n"
+
 
             # create default user resource
             parameters = []
@@ -329,7 +339,8 @@ class VersionHandler(BearerRequestHandler):
     def get(self, **kwargs):
         api_id = kwargs['api_id'] if 'api_id' in kwargs else None
 
-        versions = self.Versions.fetch(user_id=self.oauth.user_id, api_id=api_id, active=True)
+        #versions = self.Versions.fetch(user_id=self.oauth.user_id, api_id=api_id, active=True)
+        versions = self.Versions.fetch({"user_id":self.oauth.user_id, "api_id":api_id, "active":True, "access_control_policy.access_control_list.id": self.oauth.user_id, "access_control_policy.access_control_list.permissions": "read"})
 
         versions_payload = []
 
@@ -361,7 +372,7 @@ class ResourceHandler(BearerRequestHandler):
         auth_type = 'oauth2'
         active = True
 
-        resource = self.Resources.get(name=name, version_id=version_id, active=True)
+        resource = self.Resources.get({"name":name, "version_id":version_id, "active":True})
         if not resource:
             # create acp
             acp = {"owner":{"type":"user", "id":self.oauth.user_id}, "access_control_list":[{"type":"user", "id":self.oauth.user_id, "permissions":["read", "write"]}]}
@@ -380,7 +391,8 @@ class ResourceHandler(BearerRequestHandler):
         resource_id = kwargs['resource_id'] if 'resource_id' in kwargs else None
 
         if version_id:
-            resources = self.Resources.fetch(user_id=self.oauth.user_id, version_id=version_id, active=True)
+            #resources = self.Resources.fetch(user_id=self.oauth.user_id, version_id=version_id, active=True)
+            resources = self.Resources.fetch({"user_id":self.oauth.user_id, "version_id":version_id, "active":True, "access_control_policy.access_control_list.id": self.oauth.user_id, "access_control_policy.access_control_list.permissions": "read"})
 
             resources_payload = []
 
@@ -391,7 +403,7 @@ class ResourceHandler(BearerRequestHandler):
             response = make_response(json.dumps(resources_payload), 200)
 
         else: # resource_id
-            resource = self.Resources.get(user_id=self.oauth.user_id, id=resource_id, active=True)
+            resource = self.Resources.get({"user_id":self.oauth.user_id, "id":resource_id, "active":True})
 
             response = make_response(ResourcePayload(resource).getPayload(), 200)
 
@@ -412,7 +424,7 @@ class ResourceHandler(BearerRequestHandler):
         resource = self.Resources.update(id=resource_id, name=name, plurality=plurality, parent_resource_id=parent_resource_id, parameters=parameters)
 
         if resource:
-            resource = self.Resources.get(id=resource_id)
+            resource = self.Resources.get({"id":resource_id})
 
             response = make_response(ResourcePayload(resource).getPayload(), 200)
 
@@ -421,12 +433,12 @@ class ResourceHandler(BearerRequestHandler):
     def delete(self, **kwargs):
         resource_id = kwargs['resource_id'] if 'resource_id' in kwargs else None
 
-        resource = self.Resources.get(id=resource_id, active=True)
+        resource = self.Resources.get({"id":resource_id, "active":True})
         if resource.template.lower() == "user":
             raise customexception.ResourceException(customexception.cannot_delete_resource)
 
         # first, raise error if there are any children of this resource
-        children = self.Resources.fetch(parent_resource_id=resource_id, active=True)
+        children = self.Resources.fetch({"parent_resource_id":resource_id, "active":True})
         print "CHILDREN======="
 
         if children.count() > 0:
@@ -436,7 +448,7 @@ class ResourceHandler(BearerRequestHandler):
         resource = self.Resources.update(id=resource_id, active=False)
 
         # delete resource endpoints
-        endpoints = self.Endpoints.fetch(resource_id=resource_id, active=True)
+        endpoints = self.Endpoints.fetch({"resource_id":resource_id, "active":True})
 
         for endpoint in endpoints:
             tmp = Map(endpoint)
@@ -502,7 +514,8 @@ class EndpointHandler(BearerRequestHandler):
         request = kwargs['request']
         resource_id = kwargs['resource_id'] if 'resource_id' in kwargs else None
 
-        endpoints = self.Endpoints.fetch(resource_id=resource_id, active=True)
+        #endpoints = self.Endpoints.fetch(resource_id=resource_id, active=True)
+        endpoints = self.Endpoints.fetch({"resource_id":resource_id, "active":True, "access_control_policy.access_control_list.id": self.oauth.user_id, "access_control_policy.access_control_list.permissions": "read"})
 
         endpoints_payload = []
 
@@ -526,7 +539,7 @@ class DeploymentHandler(BearerRequestHandler):
         active = True
 
         # update all existing deployments to active=False
-        deployments = self.Deployments.fetch(version_id=version_id, environment=magic_environment)
+        deployments = self.Deployments.fetch({"version_id":version_id, "environment":magic_environment})
         for deployment in deployments:
             self.Deployments.update(id=deployment['id'], active=False)
 
@@ -566,7 +579,7 @@ class ApiKeysHandler(BearerRequestHandler):
         print "user_id: "+self.oauth.user_id
 
         #settings = self.Settings.fetch(api_id=api_id, user_id=self.oauth.user_id, active=True)
-        api_keys = self.Api_keys.get(user_id=self.oauth.user_id, api_id=api_id, active=True)
+        api_keys = self.Api_keys.get({"user_id":self.oauth.user_id, "api_id":api_id, "active":True})
 
         print "api_keys:"
         print api_keys
@@ -587,12 +600,12 @@ class DataHandler(BearerRequestHandler):
         #api_keys = self.Api_keys.get(user_id=self.oauth.user_id, api_id=api_id, active=True)
 
         # get resource
-        resource = self.Resources.get(id=resource_id, active=True)
+        resource = self.Resources.get({"id":resource_id, "active":True})
         print "resource!!!"
         print resource
 
         # get api_objects with this resource_id
-        api_objects = self.Api_objects.fetch(resource_id=resource['id'], active=True)
+        api_objects = self.Api_objects.fetch({"resource_id":resource['id'], "active":True})
         #print "api_objects!!!"
         #print api_objects
 
