@@ -95,10 +95,13 @@ class RequestHandler():
         elif method.lower() == 'get':
             produces.append('application/json')
 
+        # create acp
+        acp = {"owner":{"type":"user", "id":self.oauth.user_id}, "access_control_list":[{"type":"user", "id":self.oauth.user_id, "permissions":["read", "write"]}]}
+
         endpoint = self.Endpoints.insert(id=Util.generate_id(method), version_id=resource.version_id, relative_url=relative_url,
                                          code_snippets=code_snippets, method=method, collection=collection, har_request=har_request,
                                          name=name, resource_id=resource_id, created=created, active=active, user_id=self.oauth.user_id,
-                                         client_id=self.oauth.client_id, produces=produces, consumes=consumes)
+                                         client_id=self.oauth.client_id, produces=produces, consumes=consumes, access_control_policy=acp)
 
         return endpoint
 
@@ -123,7 +126,11 @@ class RequestHandler():
         api = self.Apis.get(id=version.api_id, active=True)
 
         swagger_object = Swagger.generate(api, version, resources, endpoints, magic_environment)
-        deployment = self.Deployments.insert(id=Util.generate_id(version_id), version_id=version_id, version_name=version.name, api_id=api.id, swagger=swagger_object, environment=magic_environment, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
+
+        # create acp
+        acp = {"owner":{"type":"user", "id":self.oauth.user_id}, "access_control_list":[{"type":"user", "id":self.oauth.user_id, "permissions":["read", "write"]}]}
+
+        deployment = self.Deployments.insert(id=Util.generate_id(version_id), version_id=version_id, version_name=version.name, api_id=api.id, swagger=swagger_object, environment=magic_environment, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id, access_control_policy=acp)
 
         return deployment
 
@@ -175,7 +182,9 @@ class UserHandler(BasicRequestHandler):
 
         user = self.Users.get(username=username, active=True)
         if not user:
-            user = self.Users.insert(username=username, id=user_id, password=password, name=name, active=active, created=created)
+            acp = {"owner":{"type":"client", "id":self.client.client_id}, "access_control_list":[{"type":"client", "id":self.client.client_id, "permissions":["read", "write"]}]}
+
+            user = self.Users.insert(username=username, id=user_id, password=password, name=name, active=active, created=created, access_control_policy=acp)
             response = make_response(UsersPayload(user).getPayload(), 201)
 
             # send welcome email
@@ -207,7 +216,10 @@ class OauthHandler(BasicRequestHandler):
             active = True
             user_id = user.id
 
-            oauth = self.Oauths.insert(id=Util.generate_id(access_token), access_token=access_token, refresh_token=refresh_token, created=created, active=active, user_id=user_id, client_id=self.client.client_id)
+            # create acp
+            acp = {"owner":{"type":"client", "id":self.client.client_id}, "access_control_list":[{"type":"client", "id":self.client.client_id, "permissions":["read", "write"]}]}
+
+            oauth = self.Oauths.insert(id=Util.generate_id(access_token), access_token=access_token, refresh_token=refresh_token, created=created, active=active, user_id=user_id, client_id=self.client.client_id, access_control_policy=acp)
 
             response = make_response(OauthPayload(oauth).getPayload(), 201)
         else:
@@ -226,6 +238,9 @@ class ApiHandler(BearerRequestHandler):
 
         api = self.Apis.get(title=title, user_id=self.oauth.user_id, active=True)
         if not api:
+            # create acp
+            acp = {"owner":{"type":"user", "id":self.oauth.user_id}, "access_control_list":[{"type":"user", "id":self.oauth.user_id, "permissions":["read", "write"]}]}
+
             # create api
             api_id = Util.generate_id(title+self.oauth.user_id)
             api = self.Apis.insert(id=api_id, title=title, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
@@ -234,7 +249,7 @@ class ApiHandler(BearerRequestHandler):
             client_id = Util.generate_hash('client_id'+title, 'md5') #  Util.generate_id('client_id'+title)
             client_secret = Util.generate_hash('client_secret'+title, 'md5') # Util.generate_id('client_secret'+title)
             basic_key = base64.b64encode(client_id+":"+client_secret)
-            api_key = self.Api_keys.insert(id=Util.generate_id(client_id+client_secret), user_id=self.oauth.user_id, api_id=api_id, active=active, client_id=client_id, client_secret=client_secret, basic_key=basic_key, created=created)
+            api_key = self.Api_keys.insert(id=Util.generate_id(client_id+client_secret), user_id=self.oauth.user_id, api_id=api_id, active=active, client_id=client_id, client_secret=client_secret, basic_key=basic_key, created=created, access_control_policy=acp)
 
             response = make_response(ApiPayload(api).getPayload(), 201)
         else:
@@ -277,13 +292,16 @@ class VersionHandler(BearerRequestHandler):
 
         version = self.Versions.get(name=name, api_id=api_id, active=True)
         if not version:
+            # create acp
+            acp = {"owner":{"type":"user", "id":self.oauth.user_id}, "access_control_list":[{"type":"user", "id":self.oauth.user_id, "permissions":["read", "write"]}]}
+
             version = self.Versions.insert(id=version_id, name=name, api_id=api_id, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
 
             # create default user resource
             parameters = []
             parameters.append({"name":"username", "description":"email address", "read_only":False, "required":True, "type":"String", "fixed":True})
             parameters.append({"name":"password", "description":"user password", "read_only":False, "required":True, "type":"String", "fixed":True})
-            resource = self.Resources.insert(id=Util.generate_id('user'), template='user', name='User', auth_type='basic', version_id=version_id, plurality='Users', parent_resource_id='None', parameters=parameters, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
+            resource = self.Resources.insert(id=Util.generate_id('user'), template='user', name='User', auth_type='basic', version_id=version_id, plurality='Users', parent_resource_id='None', parameters=parameters, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id, access_control_policy=acp)
             # end default user resource
 
             # create user endpoints
@@ -345,7 +363,10 @@ class ResourceHandler(BearerRequestHandler):
 
         resource = self.Resources.get(name=name, version_id=version_id, active=True)
         if not resource:
-            resource = self.Resources.insert(id=resource_id, template=template, auth_type=auth_type, name=name, version_id=version_id, plurality=plurality, parent_resource_id=parent_resource_id, parameters=parameters, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id)
+            # create acp
+            acp = {"owner":{"type":"user", "id":self.oauth.user_id}, "access_control_list":[{"type":"user", "id":self.oauth.user_id, "permissions":["read", "write"]}]}
+
+            resource = self.Resources.insert(id=resource_id, template=template, auth_type=auth_type, name=name, version_id=version_id, plurality=plurality, parent_resource_id=parent_resource_id, parameters=parameters, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id, access_control_policy=acp)
 
             response = make_response(ResourcePayload(resource).getPayload(), 201)
 
