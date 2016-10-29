@@ -236,7 +236,8 @@ class ApiHandler(BearerRequestHandler):
         created = datetime.datetime.utcnow()
         active = True
 
-        api = self.Apis.get({"title":title, "user_id":self.oauth.user_id, "active":True})
+        #api = self.Apis.get({"title":title, "user_id":self.oauth.user_id, "active":True})
+        api = self.Apis.get({"title":title, "client_id":self.oauth.client_id, "active":True})
         if not api:
             # create acp
             acp = {"owner":{"type":"user", "id":self.oauth.user_id}, "access_control_list":[{"type":"user", "id":self.oauth.user_id, "permissions":["read", "write"]}]}
@@ -246,10 +247,10 @@ class ApiHandler(BearerRequestHandler):
             api = self.Apis.insert(id=api_id, title=title, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id, access_control_policy=acp)
 
             # create 1st api key
-            client_id = Util.generate_hash('client_id'+title, 'md5') #  Util.generate_id('client_id'+title)
-            client_secret = Util.generate_hash('client_secret'+title, 'md5') # Util.generate_id('client_secret'+title)
-            basic_key = base64.b64encode(client_id+":"+client_secret)
-            api_key = self.Api_keys.insert(id=Util.generate_id(client_id+client_secret), user_id=self.oauth.user_id, api_id=api_id, active=active, client_id=client_id, client_secret=client_secret, basic_key=basic_key, created=created, access_control_policy=acp)
+            api_client_id = Util.generate_hash('client_id'+title, 'md5') #  Util.generate_id('client_id'+title)
+            api_client_secret = Util.generate_hash('client_secret'+title, 'md5') # Util.generate_id('client_secret'+title)
+            basic_key = base64.b64encode(api_client_id+":"+api_client_secret)
+            api_key = self.Api_keys.insert(id=Util.generate_id(api_client_id+api_client_secret), user_id=self.oauth.user_id, api_id=api_id, active=active, client_id=api_client_id, client_secret=api_client_secret, basic_key=basic_key, created=created, access_control_policy=acp)
 
             response = make_response(ApiPayload(api).getPayload(), 201)
         else:
@@ -283,6 +284,11 @@ class VersionHandler(BearerRequestHandler):
         #api_id = argv[0]
         request = kwargs['request']
         api_id = kwargs['api_id'] if 'api_id' in kwargs else None
+
+        # check acp for api_id
+        api_acp = self.Apis.get({"id":api_id, "active":True, "access_control_policy.access_control_list.id": self.oauth.user_id, "access_control_policy.access_control_list.permissions": "write"})
+        if not api_acp:
+            raise customexception.ResourceException(customexception.permission_denied)
 
         data = json.loads(request.get_data())
         name = data['name']
@@ -356,6 +362,11 @@ class ResourceHandler(BearerRequestHandler):
     def post(self, **kwargs):
         request = kwargs['request']
         version_id = kwargs['version_id'] if 'version_id' in kwargs else None
+
+        # check acp for version_id
+        version_acp = self.Versions.get({"id":version_id, "active":True, "access_control_policy.access_control_list.id": self.oauth.user_id, "access_control_policy.access_control_list.permissions": "write"})
+        if not version_acp:
+            raise customexception.ResourceException(customexception.permission_denied)
 
         data = json.loads(request.get_data())
         name = data['name'].lower()
@@ -467,6 +478,11 @@ class EndpointHandler(BearerRequestHandler):
         request = kwargs['request']
         resource_id = kwargs['resource_id'] if 'resource_id' in kwargs else None
 
+        # check acp for resource_id
+        resource_acp = self.Resources.get({"id":resource_id, "active":True, "access_control_policy.access_control_list.id": self.oauth.user_id, "access_control_policy.access_control_list.permissions": "write"})
+        if not resource_acp:
+            raise customexception.ResourceException(customexception.permission_denied)
+
         data = json.loads(request.get_data())
 
         method = data['method']
@@ -531,6 +547,11 @@ class DeploymentHandler(BearerRequestHandler):
     def post(self, **kwargs):
         request = kwargs['request']
         version_id = kwargs['version_id'] if 'version_id' in kwargs else None
+
+        # check acp for version_id
+        version_acp = self.Versions.get({"id":version_id, "active":True, "access_control_policy.access_control_list.id": self.oauth.user_id, "access_control_policy.access_control_list.permissions": "write"})
+        if not version_acp:
+            raise customexception.ResourceException(customexception.permission_denied)
 
         data = json.loads(request.get_data())
 
