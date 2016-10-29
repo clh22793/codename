@@ -20,7 +20,7 @@ class Email:
         html += "<br><br>One quick question if you don't mind me asking...why did you sign up?"
         html += "<br><br>Please reply here and let me know.  I would love to hear more about what you're working on."
         html += "<br><br>Chris"
-        html += "<br><br>PS: Watch our tutorials or <a href='http://dashboard.kloudbit.com/#/management'>create an API</a> to get started!"
+        html += "<br><br>PS: Watch our tutorials or <a href='http://dashboard.kloudbit.com/'>create an API</a> to get started!"
         html += "<br><br>--<br>Chris Hickey<br>Founder, <a href='http://www.kloudbit.com'>Kloudbit</a>"
 
         params = {"to":to, "from":"Kloudbit Team <team@magicstack.io>", "subject": "Welcome to Kloudbit!", "html":html}

@@ -317,7 +317,7 @@ class VersionHandler(BearerRequestHandler):
             parameters = []
             parameters.append({"name":"username", "description":"email address", "read_only":False, "required":True, "type":"String", "fixed":True})
             parameters.append({"name":"password", "description":"user password", "read_only":False, "required":True, "type":"String", "fixed":True})
-            resource = self.Resources.insert(id=Util.generate_id('user'), template='user', name='User', auth_type='basic', version_id=version_id, plurality='Users', parent_resource_id='None', parameters=parameters, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id, access_control_policy=acp)
+            resource = self.Resources.insert(id=Util.generate_id('user'), template='user', name='user', auth_type='basic', version_id=version_id, plurality='users', parent_resource_id='None', parameters=parameters, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id, access_control_policy=acp)
             # end default user resource
 
             # create user endpoints
@@ -624,6 +624,11 @@ class DataHandler(BearerRequestHandler):
         request = kwargs['request']
         resource_id = kwargs['resource_id'] if 'resource_id' in kwargs else None
 
+        # check acp for resource_id
+        resource = self.Resources.get({"id":resource_id, "active":True, "access_control_policy.access_control_list.id": self.oauth.user_id, "access_control_policy.access_control_list.permissions": "read"})
+        if not resource:
+            raise customexception.ResourceException(customexception.permission_denied)
+
         #print "api_id: "+api_id
         #print "user_id: "+self.oauth.user_id
 
@@ -631,7 +636,7 @@ class DataHandler(BearerRequestHandler):
         #api_keys = self.Api_keys.get(user_id=self.oauth.user_id, api_id=api_id, active=True)
 
         # get resource
-        resource = self.Resources.get({"id":resource_id, "active":True})
+        #resource = self.Resources.get({"id":resource_id, "active":True})
         print "resource!!!"
         print resource
 
