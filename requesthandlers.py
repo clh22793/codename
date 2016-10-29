@@ -423,6 +423,11 @@ class ResourceHandler(BearerRequestHandler):
     def put(self, **kwargs):
         resource_id = kwargs['resource_id'] if 'resource_id' in kwargs else None
 
+        # check acp for resource_id
+        resource_acp = self.Resources.get({"id":resource_id, "active":True, "access_control_policy.access_control_list.id": self.oauth.user_id, "access_control_policy.access_control_list.permissions": "write"})
+        if not resource_acp:
+            raise customexception.ResourceException(customexception.permission_denied)
+
         data = json.loads(request.get_data())
         name = data['name'].lower()
         plurality = data['plurality'].lower()
@@ -443,6 +448,11 @@ class ResourceHandler(BearerRequestHandler):
 
     def delete(self, **kwargs):
         resource_id = kwargs['resource_id'] if 'resource_id' in kwargs else None
+
+        # check acp for resource_id
+        resource_acp = self.Resources.get({"id":resource_id, "active":True, "access_control_policy.access_control_list.id": self.oauth.user_id, "access_control_policy.access_control_list.permissions": "write"})
+        if not resource_acp:
+            raise customexception.ResourceException(customexception.permission_denied)
 
         resource = self.Resources.get({"id":resource_id, "active":True})
         if resource.template.lower() == "user":
