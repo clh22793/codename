@@ -55,7 +55,9 @@ class RequestHandler():
 
     def process(self, **kwargs):
         self.authorize(kwargs['request'])
+        return self.route_method(**kwargs)
 
+    def route_method(self, **kwargs):
         if request.method == 'POST':
             return self.post(**kwargs)
         elif request.method == 'GET':
@@ -144,7 +146,10 @@ class BasicRequestHandler(RequestHandler):
         # Authorization
         self.client = VerifyRequest.authorization('basic', request)
 
-class ClientHandler(BasicRequestHandler):
+class ClientHandler(RequestHandler):
+    def process(self, **kwargs):
+        return self.route_method(**kwargs)
+
     def post(self, **kwargs):
         request = kwargs['request']
 
@@ -156,10 +161,9 @@ class ClientHandler(BasicRequestHandler):
         created = datetime.datetime.utcnow()
 
         # insert unique record
-        client = self.Clients.query(email=email).get()
-        if not client._id:
-            client = self.Clients(email=email, client_id=client_id, client_secret=client_secret, token=token, active=active, created=created)
-            client.put()
+        client = self.Clients.get({"email":email})
+        if not client:
+            client = self.Clients.insert(email=email, client_id=client_id, client_secret=client_secret, token=token, active=active, created=created)
 
             response = make_response('client created', 201)
 
@@ -205,10 +209,10 @@ class OauthHandler(BasicRequestHandler):
         password = request.form['password']
         user = self.Users.get({"username":username})
 
-        Util.confirm_password(password, user.password)
+        #Util.confirm_password(password, user.password)
 
         #if user:
-        if Util.confirm_password(password, user.password):
+        if user and Util.confirm_password(password, user.password):
             # create token
             access_token = Util.generate_token('access_token'+username+password)
             refresh_token = Util.generate_token('access_token'+username+password)
