@@ -375,8 +375,8 @@ class ResourceHandler(BearerRequestHandler):
         data = json.loads(request.get_data())
         name = data['name'].lower()
         plurality = data['plurality'].lower()
-        parent_resource_id = data['parent_resource_id']
-        parameters = data['parameters']
+        parent_resource_id = data['parent_resource_id'] if 'parent_resource_id' in data else None
+        parameters = data['parameters'] if 'parameters' in data else None
         # sanitize parameters
         for param in parameters:
             param['name'] = param['name'].strip().replace(' ', '_')
@@ -407,7 +407,7 @@ class ResourceHandler(BearerRequestHandler):
 
         if version_id:
             #resources = self.Resources.fetch(user_id=self.oauth.user_id, version_id=version_id, active=True)
-            resources = self.Resources.fetch({"user_id":self.oauth.user_id, "version_id":version_id, "active":True, "access_control_policy.access_control_list.id": self.oauth.user_id, "access_control_policy.access_control_list.permissions": "read"})
+            resources = self.Resources.fetch({"version_id":version_id, "active":True, "access_control_policy.access_control_list.id": self.oauth.user_id, "access_control_policy.access_control_list.permissions": "read"})
 
             resources_payload = []
 
@@ -418,7 +418,7 @@ class ResourceHandler(BearerRequestHandler):
             response = make_response(json.dumps(resources_payload), 200)
 
         else: # resource_id
-            resource = self.Resources.get({"user_id":self.oauth.user_id, "id":resource_id, "active":True})
+            resource = self.Resources.get({"id":resource_id, "active":True, "access_control_policy.access_control_list.id": self.oauth.user_id, "access_control_policy.access_control_list.permissions": "read"})
 
             response = make_response(ResourcePayload(resource).getPayload(), 200)
 
