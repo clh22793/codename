@@ -363,6 +363,9 @@ class VersionHandler(BearerRequestHandler):
         return response
 
 class ResourceHandler(BearerRequestHandler):
+    def sanitize_parameters(self, parameters):
+        pass
+
     def post(self, **kwargs):
         request = kwargs['request']
         version_id = kwargs['version_id'] if 'version_id' in kwargs else None
@@ -435,8 +438,8 @@ class ResourceHandler(BearerRequestHandler):
         data = json.loads(request.get_data())
         name = data['name'].lower()
         plurality = data['plurality'].lower()
-        parent_resource_id = data['parent_resource_id']
-        parameters = data['parameters']
+        parent_resource_id = data['parent_resource_id'] if 'parent_resource_id' in data else None
+        parameters = data['parameters'] if 'parameters' in data else None
         # sanitize parameters
         for param in parameters:
             param['name'] = param['name'].strip().replace(' ', '_')
