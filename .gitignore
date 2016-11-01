@@ -3,3 +3,4 @@ uploads/
 .idea/
 .config
 config
+config.test
