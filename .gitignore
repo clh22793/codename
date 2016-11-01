@@ -4,3 +4,5 @@ uploads/
 .config
 config
 config.test
+config.dev
+reset_collections.py
