@@ -4,6 +4,9 @@ from util import Util
 class Swagger:
     @staticmethod
     def generate(api, version, resources, endpoints, magic_environment):
+        print "RESOURCES=========="
+        print resources
+
         swagger_object = {}
         swagger_object['swagger'] = Swagger.get_swagger_version()
         swagger_object['info'] = Swagger.get_info_object(title=api.title, version=version.name)

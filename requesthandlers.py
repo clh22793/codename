@@ -1,6 +1,6 @@
 from flask import Flask, json, request, make_response
 from werkzeug import secure_filename
-import json,datetime,base64,os
+import json,datetime,base64,os, uuid
 import mailgun
 from ConfigParser import SafeConfigParser
 parser = SafeConfigParser()
@@ -251,8 +251,10 @@ class ApiHandler(BearerRequestHandler):
             api = self.Apis.insert(id=api_id, title=title, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id, access_control_policy=acp)
 
             # create 1st api key
-            api_client_id = Util.generate_hash('client_id'+title, 'md5') #  Util.generate_id('client_id'+title)
-            api_client_secret = Util.generate_hash('client_secret'+title, 'md5') # Util.generate_id('client_secret'+title)
+            u1 = uuid.uuid4()
+            u2 = uuid.uuid4()
+            api_client_id = Util.generate_hash('client_id'+title+str(u1.int), 'md5') #  Util.generate_id('client_id'+title)
+            api_client_secret = Util.generate_hash('client_secret'+title+str(u2.int), 'md5') # Util.generate_id('client_secret'+title)
             basic_key = base64.b64encode(api_client_id+":"+api_client_secret)
             api_key = self.Api_keys.insert(id=Util.generate_id(api_client_id+api_client_secret), user_id=self.oauth.user_id, api_id=api_id, active=active, client_id=api_client_id, client_secret=api_client_secret, basic_key=basic_key, created=created, access_control_policy=acp)
 
@@ -324,7 +326,7 @@ class VersionHandler(BearerRequestHandler):
             resource = self.Resources.insert(id=Util.generate_id('user'), template='user', name='user', auth_type='basic', version_id=version_id, plurality='users', parent_resource_id='None', parameters=parameters, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id, access_control_policy=acp)
             # end default user resource
 
-            # create user endpoints
+            # create default user endpoints
             self.save_endpoint({"name":"Add a "+resource.name, "method":"post","collection":False}, resource.id)
             self.save_endpoint({"name":"Get a "+resource.name, "method":"get","collection":False}, resource.id)
             self.save_endpoint({"name":"Get a collection of "+resource.name, "method":"get","collection":True}, resource.id)
@@ -332,7 +334,7 @@ class VersionHandler(BearerRequestHandler):
             self.save_endpoint({"name":"Delete a "+resource.name, "method":"delete","collection":False}, resource.id)
             # end user endpoints
 
-            # create deployment
+            # create default deployment
             magic_environment = "prod" # prod || sandbox
             self.save_deployment(version_id, magic_environment)
             # end create deployment
@@ -484,6 +486,11 @@ class ResourceHandler(BearerRequestHandler):
             print tmp
             #endpoints_payload.append(EndpointPayload(tmp).getPayload(False))
             self.Endpoints.update(id=tmp.id, active=False)
+
+        # create deployment
+        #magic_environment = "prod" # prod || sandbox
+        #self.save_deployment(resource.version_id, magic_environment)
+        # end create deployment
 
         # return empty response
         response = make_response(json.dumps({}), 200)
