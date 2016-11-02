@@ -86,55 +86,15 @@ class model_base():
 
         return self
 
-    '''
-    def get(self, **kwargs):
-        query = {}
-        for key in kwargs:
-            query[key] = kwargs[key]
-
-        entity = model_base.db[self.table].find_one(query)
-
-        print "query:===="
-        print query
-        print "entity:======"
-        print entity
-
-        if entity:
-            return Map(entity)
-        else:
-            return None
-    '''
-
     def get(self, query):
         entity = model_base.db[self.table].find_one(query)
 
-        print "query:===="
-        print query
-        print "entity:======"
-        print entity
-
         if entity:
             return Map(entity)
         else:
             return None
 
-    '''
-    def fetch(self, **kwargs):
-        query = {}
-        for key in kwargs:
-            query[str(key)] = kwargs[str(key)]
-
-        print "query:===="
-        print query
-
-        entities = model_base.db[self.table].find(query)
-        return entities
-    '''
-
     def fetch(self, query):
-        print "query:===="
-        print query
-
         entities = model_base.db[self.table].find(query)
         return entities
 
@@ -176,13 +136,6 @@ class model_base():
         id = kwargs['id'] if 'id' in kwargs else None
 
         result = model_base.db[self.table].update_one({'id':id}, query)
-
-        print "UPDATE===="
-        print "UPDATING ID: "
-        print id
-        print "modified_count: "
-        print result.modified_count
-        print result.raw_result
 
         if result.modified_count == 1:
             return result
