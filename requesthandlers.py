@@ -384,7 +384,13 @@ class ResourceHandler(BearerRequestHandler):
         parameters = data['parameters'] if 'parameters' in data else None
         # sanitize parameters
         for param in parameters:
+            param['name'] = param['name'].replace("__","_")
+
+            if param['name'][0:1] == "_":
+                param['name'] = param['name'].replace("_","",1)
+
             param['name'] = param['name'].strip().replace(' ', '_')
+
 
         created = datetime.datetime.utcnow()
         resource_id = Util.generate_id(name)
