@@ -649,27 +649,18 @@ class DataHandler(BearerRequestHandler):
         if not resource:
             raise customexception.ResourceException(customexception.permission_denied)
 
-        #print "api_id: "+api_id
-        #print "user_id: "+self.oauth.user_id
-
-        #settings = self.Settings.fetch(api_id=api_id, user_id=self.oauth.user_id, active=True)
-        #api_keys = self.Api_keys.get(user_id=self.oauth.user_id, api_id=api_id, active=True)
-
-        # get resource
-        #resource = self.Resources.get({"id":resource_id, "active":True})
         print "resource!!!"
         print resource
 
         # get api_objects with this resource_id
         api_objects = self.Api_objects.fetch({"resource_id":resource['id'], "active":True})
-        #print "api_objects!!!"
-        #print api_objects
 
         data_payload = []
 
         for api_object in api_objects:
-            #print api_object
-            #record = {"body":api_object['body'], "resource":api_object['resource']}
+            if resource.template == "user":
+                api_object['body']['content'].pop('password',None)
+
             data_payload.append(api_object['body'])
 
         response = make_response(json.dumps(data_payload), 200)
