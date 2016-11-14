@@ -659,6 +659,8 @@ class DataHandler(BearerRequestHandler):
 
         for api_object in api_objects:
             if resource.template == "user":
+                print "API_OBJECT===="
+                print api_object
                 api_object['body']['content'].pop('password',None)
 
             data_payload.append(api_object['body'])
