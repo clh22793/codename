@@ -332,6 +332,7 @@ class VersionHandler(BearerRequestHandler):
             self.save_endpoint({"name":"Get a collection of "+resource.name, "method":"get","collection":True}, resource.id)
             self.save_endpoint({"name":"Update a "+resource.name, "method":"put","collection":False}, resource.id)
             self.save_endpoint({"name":"Delete a "+resource.name, "method":"delete","collection":False}, resource.id)
+            #self.save_endpoint({"name":"Get an Access Token", "method":"post"})
             # end user endpoints
 
             # create default deployment

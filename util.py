@@ -372,7 +372,10 @@ class Util:
 
         url = base_url + version.name + '/' + relative_url
 
-        har_request = {"method":method, "url":url, "headers":headers, "queryString":queryString, "postData":postData}
+        har_request = {"method":method.upper(), "url":str(url), "headers":headers, "queryString":queryString, "postData":postData}
+
+        print "har_request"
+        print har_request
 
         return har_request
 
