@@ -79,13 +79,14 @@ class RequestHandler():
         resource = self.Resources.get({"id":resource_id, "active":True})
         endpoint = self.Endpoints.get({"method":method, "resource_id":resource_id, "collection":collection, "active":True})
         version = self.Versions.get({"id":resource.version_id, "active":True})
+        api_key = self.Api_keys.get({"user_id":self.oauth.user_id, "api_id":version.api_id, "active":True})
 
         if endpoint:
             self.Endpoints.update(id=endpoint.id, active=False)
 
         parent_resource = self.Resources.get({"id":resource.parent_resource_id, "active":True}) if resource.parent_resource_id else None
         relative_url = Util.get_relative_url(method, resource, collection, parent_resource)
-        har_request = Util.generate_har_request(method, resource, version, relative_url, Util.get_base_url())
+        har_request = Util.generate_har_request(method, resource, version, relative_url, Util.get_base_url(), api_key)
         code_snippets = Util.get_code_snippets(har_request)
         code_snippets['curl'] = code_snippets['curl'].replace('%7B', ':').replace('%7D', '');
 

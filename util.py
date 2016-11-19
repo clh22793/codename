@@ -335,11 +335,11 @@ class Util:
         return relative_url
 
     @staticmethod
-    def generate_har_request(method, resource, version, relative_url, base_url):
+    def generate_har_request(method, resource, version, relative_url, base_url, api_key):
         headers = []
 
         if resource.auth_type == 'basic':
-            headers.append({"name":"Authorization", "value":"Basic [KLOUDBIT_TOKEN]"})
+            headers.append({"name":"Authorization", "value":"Basic "+api_key.basic_key})
         else: # == 'oauth2'
             headers.append({"name":"Authorization", "value":"Bearer [ACCESS_TOKEN]"})
 
