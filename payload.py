@@ -41,7 +41,7 @@ class ApiPayload(Payload):
 
 class VersionPayload(Payload):
     def setPayload(self, model):
-        self.payload = {'meta':{'type':'version', 'created':str(model.created)}, 'content':{"id" :model.id, "name":model.name, "base_url":model.base_url}}
+        self.payload = {'meta':{'type':'version', 'created':str(model.created)}, 'content':{"id" :model.id, "name":model.name}}
 
 class SwaggerPayload(Payload):
     def setPayload(self, model):

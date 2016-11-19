@@ -240,8 +240,8 @@ class ApiHandler(BearerRequestHandler):
         created = datetime.datetime.utcnow()
         active = True
 
-        #api = self.Apis.get({"title":title, "user_id":self.oauth.user_id, "active":True})
-        api = self.Apis.get({"title":title, "client_id":self.oauth.client_id, "active":True})
+        api = self.Apis.get({"title":title, "user_id":self.oauth.user_id, "active":True})
+        #api = self.Apis.get({"title":title, "client_id":self.oauth.client_id, "active":True})
         if not api:
             # create acp
             acp = {"owner":{"type":"user", "id":self.oauth.user_id}, "access_control_list":[{"type":"user", "id":self.oauth.user_id, "permissions":["read", "write"]}]}
