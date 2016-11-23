@@ -194,7 +194,7 @@ class UserHandler(BasicRequestHandler):
 
             # send welcome email
             email_client = mailgun.Email(parser.get('GENERAL', 'ENVIRONMENT'))
-            email_client.send_welcome_message(username)
+            email_client.send_welcome_message(username, name)
 
             return response
 

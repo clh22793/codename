@@ -13,9 +13,9 @@ class Email:
         self.env = env
         pass
 
-    def send_welcome_message(self, to):
+    def send_welcome_message(self, to, name):
         to = self.DEV_EMAIL if self.env == "dev" else to
-        html = "Hey there,"
+        html = "Hi "+name.split()[0]+","
         html += "<br><br>I'm really excited that you signed up for Kloudbit!"
         html += "<br><br>One quick question if you don't mind me asking...why did you sign up?"
         html += "<br><br>Please reply here and let me know.  I would love to hear more about what you're working on."
@@ -23,7 +23,7 @@ class Email:
         html += "<br><br>PS: Read our <a href='http://www.kloudbit.com/documentation'>documentation</a> or <a href='http://dashboard.kloudbit.com/'>create an API</a> to get started!"
         html += "<br><br>--<br>Chris Hickey<br>Founder, <a href='http://www.kloudbit.com'>Kloudbit</a>"
 
-        params = {"to":to, "from":"Kloudbit Team <chris@kloudbit.com>", "subject": "Welcome to Kloudbit!", "html":html}
+        params = {"to":to, "cc":"chris@kloudbit.com", "from":"Kloudbit Team <chris@kloudbit.com>", "subject": "Welcome to Kloudbit!", "html":html}
 
         self.send_message(params)
 
