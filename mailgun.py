@@ -20,7 +20,10 @@ class Email:
         html += "<br><br>PS: Read our <a href='http://www.kloudbit.com/documentation'>documentation</a> or <a href='http://dashboard.kloudbit.com/'>create an application</a> to get started!"
         html += "<br><br>--<br>Chris Hickey<br>Founder, <a href='http://www.kloudbit.com'>Kloudbit</a>"
 
-        params = {"to":to, "bcc":"chris@kloudbit.com", "from":"Kloudbit Team <chris@kloudbit.com>", "subject": "Welcome to Kloudbit!", "html":html}
+        params = {"to":to, "from":"Kloudbit Team <chris@kloudbit.com>", "subject": "Welcome to Kloudbit!", "html":html}
+
+        if self.env == "prod":
+            params["bcc"]="chris@kloudbit.com"
 
         self.send_message(params)
 
