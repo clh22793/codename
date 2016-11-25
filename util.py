@@ -352,7 +352,12 @@ class Util:
                 print "parameter"
                 print parameter
                 if parameter['read_only'] == False:
-                    if parameter['type'].lower() == 'string':
+
+                    if resource.template.lower() == 'user' and parameter['name'].lower() == 'username':
+                        test_value = "jondoe@example.com"
+                    elif resource.template.lower() == 'user' and parameter['name'].lower() == 'password':
+                        test_value = "password"
+                    elif parameter['type'].lower() == 'string':
                         test_value = "test value"
                     elif parameter['type'].lower() == 'number':
                         test_value = 101
