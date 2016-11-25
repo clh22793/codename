@@ -356,9 +356,9 @@ class Util:
                     if resource.template.lower() == 'user' and parameter['name'].lower() == 'username':
                         test_value = "jondoe@example.com"
                     elif resource.template.lower() == 'user' and parameter['name'].lower() == 'password':
-                        test_value = "password"
+                        test_value = "test"
                     elif parameter['type'].lower() == 'string':
-                        test_value = "test value"
+                        test_value = "lorem ipsum"
                     elif parameter['type'].lower() == 'number':
                         test_value = 101
                     elif parameter['type'].lower() == 'boolean':
