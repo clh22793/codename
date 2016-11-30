@@ -3,16 +3,6 @@ import datetime, base64, logging, requests
 
 # internal imports
 import customexception
-from util import Util
-from verifyrequest import VerifyRequest
-from payload import UsersPayload
-from payload import OauthPayload
-from payload import ApiPayload
-from models import model_user
-from models import model_oauth
-from models import model_api
-from models import model_swagger
-
 import requesthandlers
 
 # APP BEGIN
@@ -32,6 +22,18 @@ def unhandled_exception(exception):
 @app.route('/')
 def index():
     return 'In the Beginning... Was the Command Line'
+
+'''
+@app.route('/admin')
+def admin():
+    adminhandler = requesthandlers.AdminHandler()
+    return adminhandler.get()
+'''
+
+@app.route('/invite_beta_users')
+def beta():
+    betas = requesthandlers.BetaHandler()
+    return betas.invite()
 
 @app.route('/clients', methods=['POST'])
 def clients():

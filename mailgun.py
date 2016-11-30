@@ -10,14 +10,31 @@ class Email:
         self.env = env
         pass
 
+    def send_invite_message(self, to):
+        to = to
+        html = "<html><head></head><body>"
+        html += "Hello! "
+        html += "<br><br>Thanks a lot for signing up for the Kloudbit Beta, the easiest way to build backend applications.  Today, we're happy to announce that Kloudbit is ready for you to explore!"
+        html += "<br><br><a href='https://dashboard.kloudbit.com/createaccount'>Click Here</a> to Sign Up!"
+        html += "<br><br>Remember, Kloudbit is still in 'beta' and hiccups might happen.  If you have any comments or suggestions, we'd love to hear them."
+        html += "<br><br>Thank you so much for your interest!"
+        html += "<br><br>--<br>Chris Hickey<br>Founder, <a href='http://www.kloudbit.com'>Kloudbit</a> (previously magicstack.io)"
+        html += "</body></html>"
+
+        params = {"to":to, "from":"Kloudbit Team <chris@kloudbit.com>", "subject": "Private Beta Invite", "html":html}
+
+        if self.env == "prod":
+            params["bcc"]="chris@kloudbit.com"
+
+        return self.send_message(params)
+
     def send_welcome_message(self, to, name):
         to = self.DEV_EMAIL if self.env == "dev" else to
         html = "Hi "+name.split()[0]+","
         html += "<br><br>I'm really excited that you signed up for Kloudbit!"
         html += "<br><br>One quick question if you don't mind me asking...why did you sign up?"
-        html += "<br><br>Please reply here and let me know.  I would love to hear more about what you're working on."
-        html += "<br><br>Chris"
-        html += "<br><br>PS: Read our <a href='http://www.kloudbit.com/documentation'>documentation</a> or <a href='http://dashboard.kloudbit.com/'>create an application</a> to get started!"
+        html += "<br><br>Please reply here and let me know.  I would love to hear more about what you're working on!"
+        html += "<br><br>Also, please read our <a href='http://www.kloudbit.com/documentation'>documentation</a> or <a href='http://dashboard.kloudbit.com/'>create an application</a> to get started!"
         html += "<br><br>--<br>Chris Hickey<br>Founder, <a href='http://www.kloudbit.com'>Kloudbit</a>"
 
         params = {"to":to, "from":"Kloudbit Team <chris@kloudbit.com>", "subject": "Welcome to Kloudbit!", "html":html}
@@ -25,7 +42,7 @@ class Email:
         if self.env == "prod":
             params["bcc"]="chris@kloudbit.com"
 
-        self.send_message(params)
+        return self.send_message(params)
 
     def send_message(self, params):
         url = self.API_BASE_URL + "/messages"
@@ -33,5 +50,6 @@ class Email:
 
         response = requests.post(url,params=params,auth=auth)
         print response
+        return response
 
 

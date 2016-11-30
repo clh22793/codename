@@ -705,3 +705,34 @@ class SwaggerHandler(BearerRequestHandler):
             response = make_response('ERROR: File not uploaded', 200)
 
         return response
+
+class AdminHandler(RequestHandler):
+    def get(self):
+        # get users
+        users = self.Users.fetch({"active":True})
+
+        for user in users:
+            print user['active']
+
+
+        response = make_response(len(users), 200)
+        return response
+
+class BetaHandler(RequestHandler):
+    def invite(self):
+        env = parser.get('GENERAL', 'ENVIRONMENT')
+
+        if env.lower() == 'test':
+            emails = ['clh1128-1@mailinator.com']
+
+            for email in emails:
+                # send welcome email
+                email_client = mailgun.Email(parser.get('GENERAL', 'ENVIRONMENT'))
+                email_client.send_invite_message(email)
+
+
+            response = make_response('done', 200)
+        else:
+            response = make_response('could not run', 200)
+
+        return response
