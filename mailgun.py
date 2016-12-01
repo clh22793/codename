@@ -18,7 +18,7 @@ class Email:
         html += "<br><br><a href='https://dashboard.kloudbit.com/createaccount'>Click Here</a> to Sign Up!"
         html += "<br><br>Remember, Kloudbit is still in 'beta' and hiccups might happen.  If you have any comments or suggestions, we'd love to hear them."
         html += "<br><br>Thank you so much for your interest!"
-        html += "<br><br>--<br>Chris Hickey<br>Founder, <a href='http://www.kloudbit.com'>Kloudbit</a> (previously magicstack.io)"
+        html += "<br><br>--<br>Chris Hickey<br>Founder, <a href='http://www.kloudbit.com'>Kloudbit</a>"
         html += "</body></html>"
 
         params = {"to":to, "from":"Kloudbit Team <chris@kloudbit.com>", "subject": "Private Beta Invite", "html":html}
