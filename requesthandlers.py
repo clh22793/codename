@@ -718,7 +718,7 @@ class AdminHandler(RequestHandler):
         return user
 
     def get_resources_by_user(self, user_id):
-        resources = self.Resources.fetch({"active":True, "user_id":user_id})
+        resources = self.Resources.fetch({"user_id":user_id})
 
         return resources
 
@@ -737,32 +737,7 @@ class BetaHandler(RequestHandler):
         env = parser.get('GENERAL', 'ENVIRONMENT')
 
         if env.lower() == 'test':
-            #emails = ['clh1128-1@mailinator.com']
-
-            '''
-            emails = []
-            emails.append('painkiller0513@163.com')
-            emails.append('kevin@jmitch.com')
-            emails.append('ian.rathbone@gmail.com')
-            emails.append('andrew@quchifan.com')
-            emails.append('iwengwt@gmail.com')
-            emails.append('juliancamilleri1989@gmail.com')
-            emails.append('joe@clikt.com')
-            emails.append('danihenrique@gmail.com')
-            emails.append('andrew@gocodeless.io')
-            emails.append('thalis999333@yahoo.gr')
-            emails.append('michelle@decoded.com')
-            emails.append('cartenzstore@gmail.com')
-            emails.append('claylevering@gmail.com')
-            emails.append('1615388088@qq.com')
-            emails.append('wanghan85@hotmail.com')
-            emails.append('georgem@spenceapp.co.uk')
-            emails.append('oscar.shrimpton.personal@gmail.com')
-            emails.append('hello@talkabouting.com')
-            emails.append('oink@verspiglad.co.uk')
-            emails.append('talya@resumetarget.com')
-            emails.append('paul@brightstores.com')
-            '''
+            emails = ['clh1128-1@mailinator.com']
 
             for email in emails:
                 # send welcome email
