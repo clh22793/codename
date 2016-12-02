@@ -1,4 +1,4 @@
-from flask import Flask, json, request, make_response
+from flask import Flask, json, request, make_response, render_template
 import datetime, base64, logging, requests
 
 # internal imports
@@ -22,13 +22,6 @@ def unhandled_exception(exception):
 @app.route('/')
 def index():
     return 'In the Beginning... Was the Command Line'
-
-'''
-@app.route('/admin')
-def admin():
-    adminhandler = requesthandlers.AdminHandler()
-    return adminhandler.get()
-'''
 
 @app.route('/invite_beta_users')
 def beta():
@@ -127,6 +120,48 @@ def api_keys(api_id):
 def resources_data(resource_id):
     datahandler = requesthandlers.DataHandler()
     return datahandler.process(request=request, resource_id=resource_id)
+
+# ADMIN PAGE
+
+@app.route('/admin/users')
+def admin_users():
+    adminhandler = requesthandlers.AdminHandler()
+    cursor_users = adminhandler.get_users()
+    users = []
+
+    for user in cursor_users:
+        users.append(user)
+
+    return render_template('admin.html', users=users)
+
+@app.route('/admin/users/<user_id>')
+def admin_users_id(user_id):
+    adminhandler = requesthandlers.AdminHandler()
+
+    user = adminhandler.get_user_by_id(user_id)
+    curser_resources = adminhandler.get_resources_by_user(user_id)
+
+    resources = []
+    for resource in curser_resources:
+        resources.append(resource)
+    print resources
+
+    return render_template('user.html', user=user, resources=resources)
+
+@app.route('/admin/resources/<resource_id>')
+def admin_resources_id(resource_id):
+    adminhandler = requesthandlers.AdminHandler()
+
+    resource = adminhandler.get_resource_by_id(resource_id)
+    curser_datas = adminhandler.get_data_by_resource_id(resource_id)
+
+    datas = []
+    for data in curser_datas:
+        datas.append(data)
+
+    print datas
+
+    return render_template('resource.html', resource=resource, datas=datas)
 
 # DEPRECATED; ONLY AN EXAMPLE!!
 @app.route('/data')

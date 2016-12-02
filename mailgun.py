@@ -14,7 +14,7 @@ class Email:
         to = to
         html = "<html><head></head><body>"
         html += "Hello! "
-        html += "<br><br>Thanks a lot for signing up for the Kloudbit Beta, the easiest way to build backend applications.  Today, we're happy to announce that Kloudbit is ready for you to explore!"
+        html += "<br><br>Thanks a lot for signing up for the Kloudbit Beta, the easiest way to build backend applications for web or mobile apps.  Today, we're happy to announce that Kloudbit is ready for you to explore!"
         html += "<br><br><a href='https://dashboard.kloudbit.com/createaccount'>Click Here</a> to Sign Up!"
         html += "<br><br>Remember, Kloudbit is still in 'beta' and hiccups might happen.  If you have any comments or suggestions, we'd love to hear them."
         html += "<br><br>Thank you so much for your interest!"
