@@ -314,14 +314,13 @@ class VersionHandler(BearerRequestHandler):
 
             print "\n\ninserting version with acp==================\n\n"
 
-
             version = self.Versions.insert(id=version_id, name=name, api_id=api_id, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id, access_control_policy=acp)
             print version
             print "\n\n"
 
-
             # create default user resource
             parameters = []
+            parameters.append({"name":"_id", "description":"unique id", "read_only":True, "required":False, "type":"String", "fixed":True})
             parameters.append({"name":"username", "description":"email address", "read_only":False, "required":True, "type":"String", "fixed":True})
             parameters.append({"name":"password", "description":"user password", "read_only":False, "required":True, "type":"String", "fixed":True})
             resource = self.Resources.insert(id=Util.generate_id('user'), template='user', name='user', auth_type='basic', version_id=version_id, plurality='users', parent_resource_id='None', parameters=parameters, created=created, active=active, user_id=self.oauth.user_id, client_id=self.oauth.client_id, access_control_policy=acp)
