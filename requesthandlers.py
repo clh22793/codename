@@ -367,7 +367,18 @@ class VersionHandler(BearerRequestHandler):
 
 class ResourceHandler(BearerRequestHandler):
     def sanitize_parameters(self, parameters):
-        pass
+        for param in parameters:
+            if 'fixed' in param and param['fixed'] == True:
+                continue
+            else:
+                param['name'] = param['name'].replace("__","_")
+
+                if param['name'][0:1] == "_":
+                    param['name'] = param['name'].replace("_","",1)
+
+                param['name'] = param['name'].strip().replace(' ', '_')
+
+        return parameters
 
     def post(self, **kwargs):
         request = kwargs['request']
@@ -383,7 +394,11 @@ class ResourceHandler(BearerRequestHandler):
         plurality = data['plurality'].lower()
         parent_resource_id = data['parent_resource_id'] if 'parent_resource_id' in data else None
         parameters = data['parameters'] if 'parameters' in data else None
-        # sanitize parameters
+        parameters = self.sanitize_parameters(parameters)
+
+
+        # sanitize parameters; remove preceding underscores from param name if exists
+        '''
         for param in parameters:
             param['name'] = param['name'].replace("__","_")
 
@@ -391,7 +406,7 @@ class ResourceHandler(BearerRequestHandler):
                 param['name'] = param['name'].replace("_","",1)
 
             param['name'] = param['name'].strip().replace(' ', '_')
-
+        '''
 
         created = datetime.datetime.utcnow()
         resource_id = Util.generate_id(name)
@@ -449,9 +464,13 @@ class ResourceHandler(BearerRequestHandler):
         plurality = data['plurality'].lower()
         parent_resource_id = data['parent_resource_id'] if 'parent_resource_id' in data else None
         parameters = data['parameters'] if 'parameters' in data else None
+        parameters = self.sanitize_parameters(parameters)
+
         # sanitize parameters
+        '''
         for param in parameters:
             param['name'] = param['name'].strip().replace(' ', '_')
+        '''
 
         resource = self.Resources.update(id=resource_id, name=name, plurality=plurality, parent_resource_id=parent_resource_id, parameters=parameters)
 
