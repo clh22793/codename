@@ -256,8 +256,10 @@ class ApiHandler(BearerRequestHandler):
             u2 = uuid.uuid4()
             api_client_id = Util.generate_hash('client_id'+title+str(u1.int), 'md5') #  Util.generate_id('client_id'+title)
             api_client_secret = Util.generate_hash('client_secret'+title+str(u2.int), 'md5') # Util.generate_id('client_secret'+title)
-            basic_key = base64.b64encode(api_client_id+":"+api_client_secret)
-            api_key = self.Api_keys.insert(id=Util.generate_id(api_client_id+api_client_secret), user_id=self.oauth.user_id, api_id=api_id, active=active, client_id=api_client_id, client_secret=api_client_secret, basic_key=basic_key, created=created, access_control_policy=acp)
+
+            # insert api keys
+            self.Api_keys.insert(id=Util.generate_id(api_client_id+api_client_secret), user_id=self.oauth.user_id, api_id=api_id, active=active, client_id=api_client_id, client_secret=api_client_secret, basic_key=Util.generate_hash(api_client_id,"md5"), created=created, access_control_policy=acp, access="full")
+            self.Api_keys.insert(id=Util.generate_id(api_client_id+api_client_secret), user_id=self.oauth.user_id, api_id=api_id, active=active, client_id=api_client_id, client_secret=api_client_secret, basic_key=Util.generate_hash(api_client_secret, "md5"), created=created, access_control_policy=acp, access="limited")
 
             response = make_response(ApiPayload(api).getPayload(), 201)
         else:
@@ -650,12 +652,20 @@ class ApiKeysHandler(BearerRequestHandler):
         print "user_id: "+self.oauth.user_id
 
         #settings = self.Settings.fetch(api_id=api_id, user_id=self.oauth.user_id, active=True)
-        api_keys = self.Api_keys.get({"user_id":self.oauth.user_id, "api_id":api_id, "active":True})
+        api_keys = self.Api_keys.fetch({"user_id":self.oauth.user_id, "api_id":api_id, "active":True})
 
         print "api_keys:"
         print api_keys
 
-        response = make_response(ApiKeysPayload(api_keys).getPayload(), 200)
+        data_payload = []
+
+        for api_key in api_keys:
+            tmp = Map(api_key)
+            data_payload.append(ApiKeysPayload(tmp).getPayload(False))
+            #data_payload.append(api_key)
+
+        #response = make_response(ApiKeysPayload(api_keys).getPayload(), 200)
+        response = make_response(json.dumps(data_payload), 200)
 
         return response
 
