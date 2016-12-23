@@ -92,7 +92,7 @@ class DeploymentPayload(Payload):
 
 class ApiKeysPayload(Payload):
     def setPayload(self, model):
-        self.payload = {'meta':{'type':'apikeys'}, 'content':{"id":model.id, "magicstack_token":model.basic_key}}
+        self.payload = {'meta':{'type':'apikeys'}, 'content':{"id":model.id, "kloudbit_token":model.basic_key, "access_level":model.access}}
 
 class AppUserPayload(ParameterPayload):
     def setParameters(self, name, parameters):
