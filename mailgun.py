@@ -1,5 +1,6 @@
 import customexception
 import requests
+from datetime import timedelta, datetime
 
 class Email:
     API_KEY = "key-681208735ecee9dcc1364b20a78ee769"
@@ -37,7 +38,10 @@ class Email:
         html += "<br><br>Also, please read our <a href='http://www.kloudbit.com/documentation'>documentation</a> or <a href='http://dashboard.kloudbit.com/'>create an application</a> to get started!"
         html += "<br><br>--<br>Chris Hickey<br>Founder, <a href='http://www.kloudbit.com'>Kloudbit</a>"
 
-        params = {"to":to, "from":"Kloudbit Team <chris@kloudbit.com>", "subject": "Welcome to Kloudbit!", "html":html}
+        x=datetime.now() + timedelta(seconds=60*2)
+        deliverytime = x.strftime('%c')
+
+        params = {"to":to, "from":"Kloudbit Team <chris@kloudbit.com>", "subject": "Welcome to Kloudbit!", "html":html, "o:deliverytime":deliverytime}
 
         if self.env == "prod":
             params["bcc"]="chris@kloudbit.com"
