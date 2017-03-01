@@ -38,8 +38,8 @@ class Email:
         html += "<br><br>Also, please read our <a href='http://www.kloudbit.com/documentation'>documentation</a> or <a href='http://dashboard.kloudbit.com/'>create an application</a> to get started!"
         html += "<br><br>--<br>Chris Hickey<br>Founder, <a href='http://www.kloudbit.com'>Kloudbit</a>"
 
-        x=datetime.now() + timedelta(seconds=60*2)
-        deliverytime = x.strftime('%c')
+        x = datetime.now() + timedelta(minutes=15)
+        deliverytime = x.strftime('%a, %w %b %Y %X') + " GMT"
 
         params = {"to":to, "from":"Kloudbit Team <chris@kloudbit.com>", "subject": "Welcome to Kloudbit!", "html":html, "o:deliverytime":deliverytime}
 
