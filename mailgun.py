@@ -33,9 +33,16 @@ class Email:
         to = self.DEV_EMAIL if self.env == "dev" else to
         html = "Hi "+name.split()[0]+","
         html += "<br><br>I'm really excited that you signed up for Kloudbit!"
+
+        '''
         html += "<br><br>One quick question if you don't mind me asking...why did you sign up?"
         html += "<br><br>Please reply here and let me know.  I would love to hear more about what you're working on!"
         html += "<br><br>Also, please read our <a href='http://www.kloudbit.com/documentation'>documentation</a> or <a href='http://dashboard.kloudbit.com/'>create an application</a> to get started!"
+        html += "<br><br>--<br>Chris Hickey<br>Founder, <a href='http://www.kloudbit.com'>Kloudbit</a>"
+        '''
+
+        html += "<br><br>Do you need any help getting started?"
+        html += "<br><br>Please reply here and let me know.  I would love to hear more about what you're working on!"
         html += "<br><br>--<br>Chris Hickey<br>Founder, <a href='http://www.kloudbit.com'>Kloudbit</a>"
 
         x = datetime.now() + timedelta(minutes=15)
