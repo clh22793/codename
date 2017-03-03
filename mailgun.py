@@ -32,7 +32,7 @@ class Email:
     def send_welcome_message(self, to, name):
         to = self.DEV_EMAIL if self.env == "dev" else to
         html = "Hi "+name.split()[0]+","
-        html += "<br><br>I'm really excited that you signed up for Kloudbit!"
+        html += "<br><br>Thank you for signing up to Kloudbit!"
 
         '''
         html += "<br><br>One quick question if you don't mind me asking...why did you sign up?"
@@ -41,14 +41,17 @@ class Email:
         html += "<br><br>--<br>Chris Hickey<br>Founder, <a href='http://www.kloudbit.com'>Kloudbit</a>"
         '''
 
-        html += "<br><br>Do you need any help getting started?"
+        html += "  Do you need any help getting started?"
         html += "<br><br>Please reply here and let me know.  I would love to hear more about what you're working on!"
         html += "<br><br>--<br>Chris Hickey<br>Founder, <a href='http://www.kloudbit.com'>Kloudbit</a>"
 
         x = datetime.now() + timedelta(minutes=15)
         deliverytime = x.strftime('%a, %w %b %Y %X') + " GMT"
 
-        params = {"to":to, "from":"Kloudbit Team <chris@kloudbit.com>", "subject": "Welcome to Kloudbit!", "html":html, "o:deliverytime":deliverytime}
+        subject = "Welcome to Kloudbit!"
+        subject = "Need Help Getting Started?"
+
+        params = {"to":to, "from":"Kloudbit Team <chris@kloudbit.com>", "subject": subject, "html":html, "o:deliverytime":deliverytime}
 
         if self.env == "prod":
             params["bcc"]="chris@kloudbit.com"
